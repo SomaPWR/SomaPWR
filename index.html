@@ -1,0 +1,1408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>SomaPWR</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+
+:root {
+  --bg: #0a0a12;
+  --surface: #12121e;
+  --card: #1a1a2e;
+  --card2: #1e1e35;
+  --border: #2d2d50;
+  --border2: #3d3d65;
+  --text: #f0eeff;
+  --muted: #8080aa;
+  --dim: #4a4a70;
+  --purple: #9b89c4;
+  --purple-bright: #b8a4e8;
+  --purple-glow: rgba(155,137,196,0.15);
+  --purple-deep: #6b4fa0;
+  --accent: #c4a8f0;
+  --teal: #7ec8c8;
+  --coral: #f4845f;
+  --gold: #f9c74f;
+  --green: #90be6d;
+  --sage: #43aa8b;
+  --orange: #f9844a;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; overflow: hidden; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 15px;
+  overflow: hidden;
+}
+
+/* SCREEN SYSTEM */
+#app { height: 100vh; position: relative; overflow: hidden; }
+.screen {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  overflow-y: auto; overflow-x: hidden;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.35s ease, transform 0.35s ease;
+  transform: translateX(30px);
+  -webkit-overflow-scrolling: touch;
+}
+.screen.active {
+  opacity: 1; pointer-events: all; transform: translateX(0);
+}
+.screen.exit {
+  opacity: 0; transform: translateX(-30px); pointer-events: none;
+}
+#screen-emotion {
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* AMBIENT BG */
+body::before {
+  content: '';
+  position: fixed; inset: 0; z-index: 0;
+  background:
+    radial-gradient(ellipse 60% 40% at 20% 10%, rgba(107,79,160,0.18) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 50% at 80% 80%, rgba(126,200,200,0.06) 0%, transparent 50%);
+  pointer-events: none;
+}
+#app { z-index: 1; position: relative; }
+
+/* ── WELCOME ─────────────────────────────────────────────── */
+#screen-welcome {
+  justify-content: center; align-items: center; text-align: center;
+  padding: 48px 28px; gap: 0;
+}
+.logo-wrap { margin-bottom: 36px; }
+.logo-circle {
+  width: 80px; height: 80px; border-radius: 50%; margin: 0 auto 0;
+  background: linear-gradient(135deg, var(--purple-deep), var(--accent));
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Cormorant Garamond', serif; font-size: 32px; color: #fff;
+  box-shadow: 0 0 48px rgba(155,137,196,0.4), 0 0 96px rgba(155,137,196,0.15);
+  position: relative;
+}
+.logo-circle::after {
+  content: '';
+  position: absolute; inset: -6px; border-radius: 50%;
+  border: 1px solid rgba(155,137,196,0.25);
+}
+.app-name {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(52px, 14vw, 80px);
+  font-weight: 300; letter-spacing: 0.1em; line-height: 1;
+  margin-bottom: 6px;
+  background: linear-gradient(135deg, #f0eeff, var(--accent));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.app-tagline {
+  font-size: 10px; letter-spacing: 0.35em; text-transform: uppercase;
+  color: var(--purple); margin-bottom: 48px;
+}
+.welcome-body {
+  font-size: 15px; line-height: 1.75; color: var(--muted);
+  max-width: 300px; margin: 0 auto 52px;
+}
+.btn-glow {
+  background: linear-gradient(135deg, var(--purple-deep), var(--accent));
+  color: #fff; border: none; padding: 16px 52px;
+  font-family: 'DM Sans', sans-serif; font-size: 12px;
+  letter-spacing: 0.22em; text-transform: uppercase; font-weight: 500;
+  cursor: pointer; border-radius: 40px;
+  box-shadow: 0 4px 32px rgba(155,137,196,0.35);
+  transition: all 0.3s;
+}
+.btn-glow:hover { transform: translateY(-2px); box-shadow: 0 8px 40px rgba(155,137,196,0.5); }
+.btn-ghost {
+  background: transparent; border: 1px solid var(--border2);
+  color: var(--muted); padding: 12px 32px;
+  font-family: 'DM Sans', sans-serif; font-size: 11px;
+  letter-spacing: 0.18em; text-transform: uppercase;
+  cursor: pointer; border-radius: 40px; transition: all 0.3s; margin-top: 14px;
+}
+.btn-ghost:hover { border-color: var(--purple); color: var(--purple); }
+
+/* ── SHARED SCREEN LAYOUT ──────────────────────────────── */
+.screen-inner { padding: 72px 24px 48px; max-width: 480px; margin: 0 auto; width: 100%; }
+.screen-top { text-align: center; margin-bottom: 36px; }
+.screen-step {
+  font-size: 9px; letter-spacing: 0.4em; text-transform: uppercase;
+  color: var(--purple); margin-bottom: 10px;
+}
+.screen-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 34px; font-weight: 300; line-height: 1.15; margin-bottom: 8px;
+}
+.screen-sub { font-size: 13px; color: var(--muted); }
+
+/* ── INTAKE ──────────────────────────────────────────────── */
+.intake-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+.intake-field { display: flex; flex-direction: column; gap: 6px; }
+.intake-label { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); }
+.intake-input {
+  background: var(--card); border: 1px solid var(--border);
+  color: var(--text); padding: 12px 14px; border-radius: 10px;
+  font-family: 'DM Sans', sans-serif; font-size: 15px; width: 100%;
+  transition: border-color 0.2s; outline: none; -webkit-appearance: none;
+}
+.intake-input:focus { border-color: var(--purple); }
+.intake-input::placeholder { color: var(--dim); }
+.intake-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+.intake-field-full { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
+select.intake-input { cursor: pointer; }
+.intake-name-row { margin-bottom: 12px; }
+
+/* ── GOAL ──────────────────────────────────────────────── */
+.goals-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 11px;
+}
+.goal-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 14px; padding: 18px 14px; text-align: center;
+  cursor: pointer; transition: all 0.22s; position: relative; overflow: hidden;
+}
+.goal-card:active { transform: scale(0.97); }
+.goal-card.selected { border-color: var(--purple); background: rgba(155,137,196,0.1); }
+.goal-card .glow {
+  position: absolute; inset: 0; opacity: 0; transition: opacity 0.3s;
+  border-radius: 14px; pointer-events: none;
+}
+.goal-card.selected .glow { opacity: 1; }
+.goal-icon { font-size: 26px; display: block; margin-bottom: 8px; }
+.goal-label { font-size: 12px; letter-spacing: 0.03em; line-height: 1.3; color: var(--text); }
+.goal-full { grid-column: span 2; }
+
+/* ── EMOTIONAL CHECK-IN ──────────────────────────────── */
+.emotion-cards { display: flex; flex-direction: column; gap: 14px; }
+.emotion-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 14px; padding: 16px 18px;
+}
+.emotion-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.emotion-name { font-size: 13px; display: flex; align-items: center; gap: 8px; }
+.emotion-score {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 28px; font-weight: 300; color: var(--accent); line-height: 1;
+  min-width: 32px; text-align: right;
+}
+.emotion-labels { display: flex; justify-content: space-between; margin-bottom: 6px; }
+.emotion-labels span { font-size: 10px; color: var(--dim); }
+.slider-wrap { position: relative; padding: 8px 0; }
+input[type=range] {
+  width: 100%; -webkit-appearance: none; appearance: none;
+  height: 4px; border-radius: 2px; outline: none; cursor: pointer;
+  background: var(--border2);
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 20px; height: 20px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--purple-deep), var(--accent));
+  cursor: pointer; box-shadow: 0 0 10px rgba(155,137,196,0.5);
+  border: 2px solid rgba(255,255,255,0.15);
+}
+input[type=range]::-moz-range-thumb {
+  width: 20px; height: 20px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--purple-deep), var(--accent));
+  cursor: pointer; border: 2px solid rgba(255,255,255,0.15);
+}
+
+/* ── BODY AWARENESS ──────────────────────────────────── */
+.options-list { display: flex; flex-direction: column; gap: 10px; }
+.option-row {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 12px; padding: 15px 18px; cursor: pointer;
+  transition: all 0.2s; display: flex; align-items: center; gap: 14px;
+}
+.option-row:active { transform: scale(0.98); }
+.option-row.selected { border-color: var(--purple); background: rgba(155,137,196,0.08); }
+.option-dot {
+  width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--border2);
+  flex-shrink: 0; transition: all 0.2s; position: relative;
+}
+.option-row.selected .option-dot { border-color: var(--purple); background: var(--purple); }
+.opt-title { font-size: 14px; margin-bottom: 3px; }
+.opt-sub { font-size: 11px; color: var(--muted); }
+
+/* ── WORKOUT DISPLAY ─────────────────────────────────── */
+#screen-workout { padding-bottom: 0; }
+.workout-hero {
+  padding: 56px 24px 28px; text-align: center;
+  background: linear-gradient(180deg, rgba(107,79,160,0.2) 0%, transparent 100%);
+  border-bottom: 1px solid var(--border);
+}
+.wk-tag { font-size: 9px; letter-spacing: 0.35em; text-transform: uppercase; color: var(--purple); margin-bottom: 10px; }
+.wk-title {
+  font-family: 'Cormorant Garamond', serif; font-size: 38px;
+  font-weight: 300; line-height: 1.1; margin-bottom: 18px;
+}
+.wk-meta { display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; }
+.wk-chip {
+  background: var(--card2); border: 1px solid var(--border);
+  border-radius: 20px; padding: 5px 14px; font-size: 11px; color: var(--muted);
+}
+.wk-sections { padding: 20px 20px 0; display: flex; flex-direction: column; gap: 16px; }
+.wk-section {
+  background: var(--card); border: 1px solid var(--border); border-radius: 14px; overflow: hidden;
+}
+.wk-sec-head {
+  padding: 13px 18px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 10px;
+}
+.wk-sec-icon { font-size: 18px; }
+.wk-sec-name { font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; }
+.wk-sec-badge {
+  margin-left: auto; font-size: 9px; padding: 3px 10px; border-radius: 20px; letter-spacing: 0.1em;
+}
+.wk-ex-list { padding: 10px; display: flex; flex-direction: column; gap: 6px; }
+.wk-ex {
+  padding: 12px 14px; border-radius: 9px; background: rgba(255,255,255,0.02);
+  display: flex; justify-content: space-between; align-items: flex-start; gap: 10px;
+}
+.ex-name { font-size: 13px; margin-bottom: 3px; }
+.ex-cue { font-size: 11px; color: var(--muted); line-height: 1.4; }
+.ex-time { font-size: 11px; color: var(--accent); white-space: nowrap; flex-shrink: 0; }
+.wk-footer { padding: 20px; display: flex; flex-direction: column; gap: 10px; align-items: center; padding-bottom: 36px; }
+
+/* ── TIMER ───────────────────────────────────────────── */
+#screen-timer {
+  justify-content: center; align-items: center;
+  text-align: center; padding: 40px 24px;
+  background: radial-gradient(ellipse 70% 50% at 50% 30%, rgba(107,79,160,0.2) 0%, transparent 60%);
+  position: relative; gap: 0;
+}
+.tmr-section-label { font-size: 9px; letter-spacing: 0.35em; text-transform: uppercase; color: var(--purple); margin-bottom: 8px; }
+.tmr-ex-name { font-family: 'Cormorant Garamond', serif; font-size: 30px; font-weight: 300; margin-bottom: 6px; }
+.tmr-cue { font-size: 12px; color: var(--muted); line-height: 1.5; max-width: 270px; margin-bottom: 40px; }
+.tmr-ring-wrap { position: relative; width: 190px; height: 190px; margin: 0 auto 36px; }
+.tmr-ring-wrap svg { transform: rotate(-90deg); }
+.ring-bg { fill: none; stroke: var(--border); stroke-width: 3; }
+.ring-prog { fill: none; stroke-width: 3; stroke-linecap: round; transition: stroke-dashoffset 1s linear; }
+.tmr-digits {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  font-family: 'Cormorant Garamond', serif; font-size: 58px; font-weight: 300; color: var(--text);
+}
+.tmr-controls { display: flex; gap: 14px; align-items: center; justify-content: center; }
+.tmr-btn {
+  width: 52px; height: 52px; border-radius: 50%; border: 1px solid var(--border2);
+  background: var(--card); color: var(--text); font-size: 18px;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s;
+}
+.tmr-btn.big {
+  width: 64px; height: 64px; font-size: 24px;
+  background: linear-gradient(135deg, var(--purple-deep), var(--accent));
+  border-color: transparent; box-shadow: 0 4px 20px rgba(155,137,196,0.4);
+}
+.tmr-btn:active { transform: scale(0.93); }
+.tmr-progress-dots {
+  position: absolute; bottom: 24px; left: 24px; right: 24px;
+  display: flex; gap: 4px;
+}
+.pdot {
+  height: 3px; border-radius: 2px; flex: 1;
+  background: var(--border); transition: background 0.3s;
+}
+.pdot.done { background: var(--purple); }
+.pdot.cur { background: var(--accent); opacity: 0.6; }
+
+/* ── COMPLETE ────────────────────────────────────────── */
+#screen-complete {
+  justify-content: center; align-items: center; text-align: center; padding: 48px 28px;
+  background: radial-gradient(ellipse 60% 40% at 50% 30%, rgba(107,79,160,0.22) 0%, transparent 60%);
+}
+.complete-glyph { font-size: 64px; margin-bottom: 24px; }
+.complete-title { font-family: 'Cormorant Garamond', serif; font-size: 46px; font-weight: 300; margin-bottom: 16px; }
+.complete-msg { font-size: 15px; color: var(--muted); line-height: 1.75; max-width: 300px; margin: 0 auto 48px; }
+
+/* ── DEMOS ───────────────────────────────────────── */
+.demo-btn {
+  margin-top: 6px; background: transparent;
+  border: 1px solid var(--border2); color: var(--purple);
+  font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase;
+  padding: 5px 12px; border-radius: 20px; cursor: pointer;
+  transition: all 0.2s; font-family: 'DM Sans', sans-serif;
+}
+.demo-btn:hover { background: var(--purple-glow); border-color: var(--purple); }
+.demo-panel {
+  display: none; margin-top: 10px;
+  background: rgba(155,137,196,0.07); border-radius: 10px;
+  padding: 12px; text-align: center;
+}
+.demo-panel.open { display: block; }
+.demo-panel svg { max-height: 150px; width: auto; display: block; margin: 0 auto; }
+
+/* ── BACK BTN ──────────────────────────────────────── */
+#backBtn {
+  position: fixed; top: 18px; left: 18px; z-index: 200;
+  width: 38px; height: 38px; border-radius: 50%;
+  background: rgba(26,26,46,0.85); backdrop-filter: blur(8px);
+  border: 1px solid var(--border2); color: var(--muted); font-size: 16px;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s; opacity: 1;
+}
+#backBtn.hidden { opacity: 0; pointer-events: none; }
+#backBtn:hover { color: var(--text); border-color: var(--purple); }
+
+/* ── ANIMATIONS ────────────────────────────────────── */
+@keyframes fadeUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
+.anim { animation: fadeUp 0.45s ease forwards; }
+.anim-d1 { animation-delay: 0.07s; opacity: 0; }
+.anim-d2 { animation-delay: 0.14s; opacity: 0; }
+.anim-d3 { animation-delay: 0.21s; opacity: 0; }
+.anim-d4 { animation-delay: 0.28s; opacity: 0; }
+
+/* scrollable inner container for some screens */
+.scroll-inner { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+
+</style>
+</head>
+<body>
+
+<button id="backBtn" class="hidden" onclick="goBack()">←</button>
+
+<div id="app">
+
+<!-- ① WELCOME -->
+<div id="screen-welcome" class="screen active">
+  <div class="logo-wrap anim"><div class="logo-circle">S</div></div>
+  <div class="anim anim-d1">
+    <div class="app-name">SomaPWR</div>
+    <div class="app-tagline">Nervous System Training</div>
+  </div>
+  <p class="welcome-body anim anim-d2">A personalized practice built around your body, your goals, and how you're feeling right now.</p>
+  <button class="btn-glow anim anim-d3" onclick="go('intake')">Begin Practice</button>
+</div>
+
+<!-- ② INTAKE -->
+<div id="screen-intake" class="screen">
+  <div class="screen-inner">
+    <div class="screen-top anim">
+      <div class="screen-step">Step 1 of 4</div>
+      <h2 class="screen-title">Tell us about yourself</h2>
+      <p class="screen-sub">This helps us personalize your workout intensity</p>
+    </div>
+    <div class="anim anim-d1">
+      <div class="intake-name-row">
+        <div class="intake-field">
+          <label class="intake-label">Your Name</label>
+          <input class="intake-input" id="in-name" type="text" placeholder="First name" autocomplete="off">
+        </div>
+      </div>
+      <div class="intake-grid">
+        <div class="intake-field">
+          <label class="intake-label">Age</label>
+          <input class="intake-input" id="in-age" type="number" placeholder="32" min="16" max="99">
+        </div>
+        <div class="intake-field">
+          <label class="intake-label">Weight (lbs)</label>
+          <input class="intake-input" id="in-weight" type="number" placeholder="150" min="80" max="400">
+        </div>
+        <div class="intake-field">
+          <label class="intake-label">Height (in)</label>
+          <input class="intake-input" id="in-height" type="number" placeholder="65" min="48" max="96">
+        </div>
+      </div>
+      <div class="intake-row">
+        <div class="intake-field">
+          <label class="intake-label">Gender</label>
+          <select class="intake-input" id="in-gender">
+            <option value="">Select…</option>
+            <option value="female">Female</option>
+            <option value="male">Male</option>
+            <option value="nonbinary">Non-binary</option>
+            <option value="prefer_not">Prefer not to say</option>
+          </select>
+        </div>
+        <div class="intake-field">
+          <label class="intake-label">Fitness Level</label>
+          <select class="intake-input" id="in-fitness">
+            <option value="">Select…</option>
+            <option value="beginner">Beginner</option>
+            <option value="intermediate">Intermediate</option>
+            <option value="advanced">Advanced</option>
+          </select>
+        </div>
+      </div>
+      <div class="intake-row">
+        <div class="intake-field">
+          <label class="intake-label">Available Time</label>
+          <select class="intake-input" id="in-time">
+            <option value="">Select…</option>
+            <option value="20">20 min</option>
+            <option value="30">30 min</option>
+            <option value="45">45 min</option>
+            <option value="60">60 min</option>
+          </select>
+        </div>
+      </div>
+      <div class="intake-field-full">
+        <label class="intake-label">Any injuries or limitations?</label>
+        <input class="intake-input" id="in-injuries" type="text" placeholder="e.g. bad knees, lower back (or leave blank)">
+      </div>
+    </div>
+    <div style="margin-top:24px;display:flex;flex-direction:column;align-items:center;">
+      <button class="btn-glow" onclick="submitIntake()">Continue</button>
+    </div>
+  </div>
+</div>
+
+<!-- ③ EMOTIONAL CHECK-IN -->
+<div id="screen-emotion" class="screen">
+  <div style="padding:60px 24px 16px;max-width:480px;margin:0 auto;width:100%;flex-shrink:0;">
+    <div class="screen-step">Step 2 of 4</div>
+    <h2 class="screen-title">How are you feeling?</h2>
+    <p class="screen-sub">Rate each area from 1 (low) to 10 (high)</p>
+  </div>
+  <div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 24px;max-width:480px;margin:0 auto;width:100%;">
+    <div id="emotion-cards" style="display:flex;flex-direction:column;gap:14px;padding-bottom:16px;"></div>
+  </div>
+  <div style="flex-shrink:0;padding:16px 24px 40px;max-width:480px;margin:0 auto;width:100%;background:var(--bg);border-top:1px solid var(--border);text-align:center;">
+    <button class="btn-glow" onclick="go('goal')">Continue</button>
+  </div>
+</div>
+
+<!-- ④ GOAL -->
+<div id="screen-goal" class="screen">
+  <div class="screen-inner">
+    <div class="screen-top anim">
+      <div class="screen-step">Step 3 of 4</div>
+      <h2 class="screen-title">What's your intention today?</h2>
+      <p class="screen-sub">Choose what you're working with</p>
+    </div>
+    <div class="goals-grid anim anim-d1">
+      <div class="goal-card" onclick="selectGoal(this,'anxiety','Reduce Anxiety','🌊','#7EC8C8')">
+        <div class="glow" style="background:radial-gradient(circle,rgba(126,200,200,0.2),transparent 70%)"></div>
+        <span class="goal-icon">🌊</span><div class="goal-label">Reduce Anxiety</div>
+      </div>
+      <div class="goal-card" onclick="selectGoal(this,'depression','Manage Depression','☀️','#F9C74F')">
+        <div class="glow" style="background:radial-gradient(circle,rgba(249,199,79,0.2),transparent 70%)"></div>
+        <span class="goal-icon">☀️</span><div class="goal-label">Manage Depression</div>
+      </div>
+      <div class="goal-card" onclick="selectGoal(this,'weight','Lose Weight','🔥','#F4845F')">
+        <div class="glow" style="background:radial-gradient(circle,rgba(244,132,95,0.2),transparent 70%)"></div>
+        <span class="goal-icon">🔥</span><div class="goal-label">Lose Weight</div>
+      </div>
+      <div class="goal-card" onclick="selectGoal(this,'sleep','Improve Sleep','🌙','#9B89C4')">
+        <div class="glow" style="background:radial-gradient(circle,rgba(155,137,196,0.2),transparent 70%)"></div>
+        <span class="goal-icon">🌙</span><div class="goal-label">Improve Sleep</div>
+      </div>
+      <div class="goal-card" onclick="selectGoal(this,'energy','Increased Energy','⚡','#90BE6D')">
+        <div class="glow" style="background:radial-gradient(circle,rgba(144,190,109,0.2),transparent 70%)"></div>
+        <span class="goal-icon">⚡</span><div class="goal-label">Increased Energy</div>
+      </div>
+      <div class="goal-card" onclick="selectGoal(this,'anger','Manage Anger','🌿','#43AA8B')">
+        <div class="glow" style="background:radial-gradient(circle,rgba(67,170,139,0.2),transparent 70%)"></div>
+        <span class="goal-icon">🌿</span><div class="goal-label">Manage Anger</div>
+      </div>
+      <div class="goal-card goal-full" onclick="selectGoal(this,'confidence','Build Confidence','💪','#F9844A')">
+        <div class="glow" style="background:radial-gradient(circle,rgba(249,132,74,0.2),transparent 70%)"></div>
+        <span class="goal-icon">💪</span><div class="goal-label">Build Confidence</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ⑤ BODY STATE -->
+<div id="screen-body" class="screen">
+  <div class="screen-inner">
+    <div class="screen-top anim">
+      <div class="screen-step">Step 4 of 4</div>
+      <h2 class="screen-title">How is your body right now?</h2>
+      <p class="screen-sub">This shapes your practice intensity</p>
+    </div>
+    <div class="options-list anim anim-d1">
+      <div class="option-row" onclick="pickBody(this,'wired')">
+        <div class="option-dot"></div>
+        <div><div class="opt-title">Wired &amp; On Edge</div><div class="opt-sub">Racing thoughts, tension, can't settle</div></div>
+      </div>
+      <div class="option-row" onclick="pickBody(this,'low')">
+        <div class="option-dot"></div>
+        <div><div class="opt-title">Low Energy / Flat</div><div class="opt-sub">Heavy, sluggish, hard to get started</div></div>
+      </div>
+      <div class="option-row" onclick="pickBody(this,'balanced')">
+        <div class="option-dot"></div>
+        <div><div class="opt-title">Fairly Balanced</div><div class="opt-sub">Present and ready to move</div></div>
+      </div>
+      <div class="option-row" onclick="pickBody(this,'pain')">
+        <div class="option-dot"></div>
+        <div><div class="opt-title">Some Discomfort / Pain</div><div class="opt-sub">Need gentle modifications today</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ⑥ WORKOUT -->
+<div id="screen-workout" class="screen">
+  <div class="workout-hero anim">
+    <div class="wk-tag" id="wk-tag">Your Practice</div>
+    <div class="wk-title" id="wk-title">Loading…</div>
+    <div class="wk-meta">
+      <div class="wk-chip" id="wk-dur">35 min</div>
+      <div class="wk-chip" id="wk-int">Moderate</div>
+      <div class="wk-chip">💧 Keep water nearby</div>
+    </div>
+  </div>
+  <div class="wk-sections anim anim-d1" id="wk-sections"></div>
+  <div class="wk-footer anim anim-d2">
+    <button class="btn-glow" onclick="startTimer()">Start Guided Practice</button>
+    <button class="btn-ghost" onclick="go('goal')">Choose Different Goal</button>
+  </div>
+</div>
+
+<!-- ⑦ TIMER -->
+<div id="screen-timer" class="screen" style="overflow:hidden;">
+  <div class="tmr-section-label" id="tmr-sec">Somatic Movement</div>
+  <div class="tmr-ex-name" id="tmr-name">Full Body Shaking</div>
+  <div class="tmr-cue" id="tmr-cue">Shake from feet up, releasing held tension</div>
+  <div class="tmr-ring-wrap">
+    <svg width="190" height="190" viewBox="0 0 190 190">
+      <circle class="ring-bg" cx="95" cy="95" r="83"/>
+      <circle class="ring-prog" id="tmr-ring" cx="95" cy="95" r="83" stroke="url(#pg)" stroke-dasharray="521" stroke-dashoffset="0"/>
+      <defs>
+        <linearGradient id="pg" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#6b4fa0"/>
+          <stop offset="100%" stop-color="#c4a8f0"/>
+        </linearGradient>
+      </defs>
+    </svg>
+    <div class="tmr-digits" id="tmr-digits">1:00</div>
+  </div>
+  <div class="tmr-controls">
+    <button class="tmr-btn" onclick="prevEx()">⏮</button>
+    <button class="tmr-btn big" id="playBtn" onclick="toggleTimer()">▶</button>
+    <button class="tmr-btn" onclick="nextEx()">⏭</button>
+  </div>
+  <div class="tmr-progress-dots" id="tmr-dots"></div>
+</div>
+
+<!-- ⑧ COMPLETE -->
+<div id="screen-complete" class="screen">
+  <div class="complete-glyph anim">🌊</div>
+  <div class="complete-title anim anim-d1">Practice Complete</div>
+  <p class="complete-msg anim anim-d2" id="complete-msg">You showed up for yourself today. That's everything.</p>
+  <button class="btn-glow anim anim-d3" onclick="go('goal')">Generate Another Practice</button>
+  <button class="btn-ghost anim anim-d3" style="margin-top:12px" onclick="go('welcome')">Start Over</button>
+</div>
+
+</div><!-- #app -->
+
+<script>
+
+// ─── STATE ──────────────────────────────────────────────
+var S = {
+  screen: 'welcome',
+  history: ['welcome'],
+  intake: {},
+  emotions: {},
+  goal: null,
+  bodyState: null,
+  workout: null,
+  queue: [],
+  qi: 0,
+  secs: 0,
+  total: 0,
+  running: false,
+  iv: null
+};
+
+// ─── EMOTIONAL QUESTIONS ─────────────────────────────────
+var EQ = [
+  { id:'stress',   label:'Stress Level',       low:'Calm & clear',      high:'Overwhelmed',    icon:'🧠' },
+  { id:'mood',     label:'Current Mood',        low:'Very low',          high:'Uplifted',       icon:'💛' },
+  { id:'tension',  label:'Body Tension',        low:'Relaxed',           high:'Very tense',     icon:'⚡' },
+  { id:'motiv',    label:'Motivation',          low:'Running on empty',  high:'Ready to go',    icon:'🔥' },
+  { id:'sleep',    label:"Last Night's Sleep",  low:'Restless',          high:'Deeply rested',  icon:'🌙' },
+  { id:'safety',   label:'Sense of Safety',     low:'On edge',           high:'Grounded & safe',icon:'🌿' }
+];
+
+// ─── WORKOUTS ─────────────────────────────────────────────
+// Structure mirrors Rachel's class format:
+// Each cycle = Somatic (dorsal lift) → Strength (sympathetic activation) → Breathwork (ventral vagal return)
+// 3 cycles, building intensity each round. The titration IS the therapy.
+
+var WK = {
+  anxiety: {
+    title:'Anxiety Relief Practice', tag:'Nervous System Regulation',
+    dur:'35–40 min', intensity:'Building',
+    cycles:[
+      {
+        label:'Cycle 1 — Mobilize', ns:'Dorsal → Sympathetic', color:'#7ec8c8',
+        somatic:  {name:'Rocking',             cue:'Gentle fore-aft rocking — the oldest self-soothing signal your body knows',            time:'90 sec'},
+        strength: {name:'Slow Bodyweight Squats', cue:'4 counts down, pause, 2 counts up — feel your feet connect to the floor',          time:'10 reps'},
+        breath:   {name:'Bumblebee Breath',    cue:'Hum on the exhale, fingers in ears — vibration activates the vagus nerve directly',    time:'90 sec'}
+      },
+      {
+        label:'Cycle 2 — Activate', ns:'Sympathetic', color:'#f4845f',
+        somatic:  {name:'Stomping (Standing)', cue:'Alternate feet deliberately — grounding the charge as it builds',                      time:'60 sec'},
+        strength: {name:'Reverse Lunges',      cue:'Controlled step back, breathe through the effort — your body is capable',             time:'10 reps each'},
+        breath:   {name:'Alternating Nostril Breathing', cue:'Right nostril in, left out — this is how we teach sympathetic to titrate back to ventral', time:'2 min'}
+      },
+      {
+        label:'Cycle 3 — Regulate', ns:'Ventral Vagal', color:'#9b89c4',
+        somatic:  {name:'Full Body Shaking',   cue:'Shake from feet up — discharge what was activated, let the body complete the cycle',   time:'60 sec'},
+        strength: {name:'Dead Bug Core',       cue:'Opposite arm and leg — bilateral movement keeps the ventral vagal state online',       time:'10 reps'},
+        breath:   {name:'Ocean Breathing',     cue:'Slow constricted breath — you are landing. This is regulation. Stay here.',           time:'2 min'}
+      }
+    ],
+    close: {name:'Standing Forward Fold', cue:'Ragdoll. Let the head go heavy. You navigated your nervous system today.', time:'90 sec'},
+    msg:"You moved through activation and found your way back. That\'s the skill. Your nervous system just got stronger. 🌊"
+  },
+
+  depression: {
+    title:'Energy Awakening Practice', tag:'Dorsal Lift + Activation',
+    dur:'35–40 min', intensity:'Building',
+    cycles:[
+      {
+        label:'Cycle 1 — Wake Up', ns:'Dorsal → Sympathetic', color:'#f9c74f',
+        somatic:  {name:'Bilateral Knee Lifts', cue:'Slow alternating lifts — cross-body movement wakes the brain up from the inside',     time:'60 sec'},
+        strength: {name:'Glute Bridges',        cue:'Slow and grounded — exhale at the top, feel the body respond to your intention',     time:'12 reps'},
+        breath:   {name:'Bumblebee Breath',     cue:'Hum on the exhale — vibration and vagal tone, the fastest way out of dorsal',       time:'90 sec'}
+      },
+      {
+        label:'Cycle 2 — Ignite', ns:'Sympathetic', color:'#f4845f',
+        somatic:  {name:'Rebounding / Pulsing', cue:'Springy bounces — you are waking the body up, lymph moving, energy rising',         time:'60 sec'},
+        strength: {name:'Dumbbell Deadlifts',   cue:'Feel the power on the pull — this is your body showing up for you',                 time:'10 reps'},
+        breath:   {name:'Alternating Nostril Breathing', cue:'You just activated. Now teach your nervous system the way back.',           time:'2 min'}
+      },
+      {
+        label:'Cycle 3 — Integrate', ns:'Ventral Vagal', color:'#9b89c4',
+        somatic:  {name:'Undulations (Standing)', cue:'Full spinal wave — let the energy move through instead of stagnating',             time:'90 sec'},
+        strength: {name:'Dumbbell Overhead Press', cue:'Drive overhead — take up space, you belong here, you are awake',                 time:'10 reps'},
+        breath:   {name:'Ocean Breathing',        cue:'Slow and steady — feel the difference from where you started. That\'s regulation.', time:'2 min'}
+      }
+    ],
+    close: {name:'Chest Opener Stretch', cue:'Arms wide, heart up — breathe into this open body. You came alive today.', time:'90 sec'},
+    msg:"You moved yourself out of stillness. The light is already coming back. ☀️"
+  },
+
+  weight: {
+    title:'Metabolic Activation Practice', tag:'Burn + Regulate',
+    dur:'40–45 min', intensity:'Strong',
+    cycles:[
+      {
+        label:'Cycle 1 — Prime', ns:'Dorsal → Sympathetic', color:'#f4845f',
+        somatic:  {name:'Full Body Shaking',   cue:'Shake the system alive — release stagnation, prime the metabolism',                   time:'60 sec'},
+        strength: {name:'Goblet Squats',       cue:'Deep and deliberate — feel the legs fire, breathe through the work',                 time:'12 reps'},
+        breath:   {name:'Alternating Nostril Breathing', cue:'Reset between sets — teach your nervous system it can activate and return', time:'90 sec'}
+      },
+      {
+        label:'Cycle 2 — Build', ns:'Sympathetic', color:'#f9844a',
+        somatic:  {name:'Stomping (Standing)', cue:'Stomp with intention — drive the energy down into the ground',                        time:'45 sec'},
+        strength: {name:'Reverse Lunges',      cue:'Step back, land soft, drive forward — power with control',                           time:'10 reps each'},
+        breath:   {name:'Ocean Breathing',     cue:'Use this breath through every set — it keeps you regulated while you work hard',     time:'Throughout'}
+      },
+      {
+        label:'Cycle 3 — Peak', ns:'Sympathetic → Ventral', color:'#9b89c4',
+        somatic:  {name:'Rebounding / Pulsing', cue:'Full activation — you\'ve earned this energy, now use it',                           time:'60 sec'},
+        strength: {name:'Dumbbell Rows',        cue:'Pull with your whole back — strong, present, regulated',                            time:'10 reps each'},
+        breath:   {name:'Boxed Breathing',      cue:'4 in, 4 hold, 4 out, 4 hold — land the nervous system. This is the skill.',        time:'2 min'}
+      }
+    ],
+    close: {name:'Hip Flexor Stretch', cue:'Release what holds you back — breathe into the front body. You did the work.', time:'60 sec each'},
+    msg:"Every rep was a vote for yourself. And every breath back was nervous system training. 🔥"
+  },
+
+  sleep: {
+    title:'Wind Down Practice', tag:'Parasympathetic Activation',
+    dur:'30–35 min', intensity:'Gentle',
+    cycles:[
+      {
+        label:'Cycle 1 — Release', ns:'Dorsal → Ventral', color:'#9b89c4',
+        somatic:  {name:'Rocking',             cue:'Slow steady rocking — ancient self-soothing, primally safe, always available to you', time:'2 min'},
+        strength: {name:'Glute Bridges',       cue:'Slow exhale at the top — grounding the body into the earth before rest',             time:'10 slow reps'},
+        breath:   {name:'Bumblebee Breath',    cue:'Hum on every exhale — the vibration turns on the vagal brake, slowing everything',   time:'2 min'}
+      },
+      {
+        label:'Cycle 2 — Settle', ns:'Ventral Vagal', color:'#7ec8c8',
+        somatic:  {name:'Undulations (Seated)', cue:'Seated spinal wave — let each exhale soften you a little more',                     time:'90 sec'},
+        strength: {name:'Supine Twists',        cue:'Both sides — wring out the day, breathe into the release, let it go',              time:'60 sec each'},
+        breath:   {name:'Alternating Nostril Breathing', cue:'Balance the hemispheres — this is the nervous system shifting to rest',    time:'3 min'}
+      },
+      {
+        label:'Cycle 3 — Restore', ns:'Deep Ventral', color:'#43aa8b',
+        somatic:  {name:'Bilateral Knee Lifts', cue:'Gentle and slow — the last cross-body signal before you let go',                    time:'45 sec'},
+        strength: {name:"Child's Pose",         cue:'Forehead down, breathe into the back body — surrender is safe here',              time:'2 min'},
+        breath:   {name:'Ocean Breathing',      cue:'Let the breath be the only thing you\'re doing. Sleep is close.',                  time:'3 min'}
+      }
+    ],
+    close: {name:'Legs Up Wall', cue:'Full rest. Close your eyes. Let the body be held. You prepared beautifully.', time:'3 min'},
+    msg:"You prepared your body and nervous system for deep rest. Sleep is healing. You earned it. 🌙"
+  },
+
+  energy: {
+    title:'Energy Ignition Practice', tag:'Sympathetic Activation + Return',
+    dur:'40 min', intensity:'Building',
+    cycles:[
+      {
+        label:'Cycle 1 — Wake', ns:'Dorsal → Sympathetic', color:'#90be6d',
+        somatic:  {name:'Bilateral Knee Lifts', cue:'Pump the knees — cross-body movement signals the brain to come online',             time:'60 sec'},
+        strength: {name:'Bodyweight Squats',    cue:'Slow and intentional — feel each muscle fire, you are waking up',                  time:'12 reps'},
+        breath:   {name:'Alternating Nostril Breathing', cue:'Balance the hemispheres — activated but regulated, that\'s the target',   time:'90 sec'}
+      },
+      {
+        label:'Cycle 2 — Ignite', ns:'Sympathetic', color:'#f9844a',
+        somatic:  {name:'Rebounding / Pulsing', cue:'Bounce with arms wide — full aliveness, every cell waking up',                     time:'90 sec'},
+        strength: {name:'Dumbbell Thrusters',   cue:'Squat to overhead press — full body, full power, full presence',                   time:'10 reps'},
+        breath:   {name:'Fire Breath',          cue:'3 rounds of 30 rapid exhales — stoke the metabolic fire, feel alive',             time:'90 sec'}
+      },
+      {
+        label:'Cycle 3 — Sustain', ns:'Ventral Vagal', color:'#9b89c4',
+        somatic:  {name:'Full Body Shaking',    cue:'Shake out the static — you activated hard, now discharge cleanly',                  time:'60 sec'},
+        strength: {name:'Dumbbell Rows',        cue:'Strong and grounded — power from a regulated place. This is the difference.',      time:'10 reps each'},
+        breath:   {name:'Ocean Breathing',      cue:'You are landing. Sustained energy comes from ventral vagal, not depletion.',       time:'2 min'}
+      }
+    ],
+    close: {name:'Spinal Roll Down', cue:'Vertebra by vertebra — seal the energy in. You generated this. It\'s yours.', time:'5 slow reps'},
+    msg:"You flipped your own switch. Sustained energy lives in regulation. You just built more of both. ⚡"
+  },
+
+  anger: {
+    title:'Release + Integrate Practice', tag:'Discharge + Regulation',
+    dur:'35 min', intensity:'Variable',
+    cycles:[
+      {
+        label:'Cycle 1 — Discharge', ns:'Sympathetic (Controlled)', color:'#f4845f',
+        somatic:  {name:'Stomping (Standing)', cue:'STOMP. Let the anger have somewhere to go — the floor can take it',                  time:'90 sec'},
+        strength: {name:'Dumbbell Deadlifts',  cue:'Channel the charge into power — this is what strength is actually for',             time:'12 reps'},
+        breath:   {name:'Fire Breath',         cue:'Forceful exhales — your breath is the safest discharge valve you have',             time:'2 min'}
+      },
+      {
+        label:'Cycle 2 — Metabolize', ns:'Sympathetic → Ventral', color:'#43aa8b',
+        somatic:  {name:'Full Body Shaking',   cue:'Shake what remains — the body needs to complete the cycle, not suppress it',        time:'90 sec'},
+        strength: {name:'Warrior Lunges',      cue:'Hold the warrior stance — you are powerful AND in control. Both are true.',         time:'45 sec each'},
+        breath:   {name:'Alternating Nostril Breathing', cue:'Right in, left out — you are teaching anger to titrate. This is the skill.', time:'2 min'}
+      },
+      {
+        label:'Cycle 3 — Integrate', ns:'Ventral Vagal', color:'#9b89c4',
+        somatic:  {name:'Undulations (Standing)', cue:'Let the wave move through — slower now, integrated, not suppressed',              time:'90 sec'},
+        strength: {name:'Dead Bug Core',          cue:'Opposite arm and leg — bilateral, regulated, present. You metabolized it.',       time:'10 reps'},
+        breath:   {name:'Boxed Breathing',        cue:'4-4-4-4 — you are home. The anger became fuel. You are regulated.',             time:'3 min'}
+      }
+    ],
+    close: {name:'Seated Forward Fold', cue:'Let it all fall forward. Breathe. You processed what the body was holding.', time:'2 min'},
+    msg:"You turned fire into fuel. Anger metabolized is power reclaimed. 🌿"
+  },
+
+  confidence: {
+    title:'Power Embodiment Practice', tag:'Somatic Confidence Building',
+    dur:'40 min', intensity:'Strong',
+    cycles:[
+      {
+        label:'Cycle 1 — Ground', ns:'Dorsal → Sympathetic', color:'#f9844a',
+        somatic:  {name:'Stomping (Standing)', cue:'Wide stance, stomp like you own the ground — because you do',                        time:'60 sec'},
+        strength: {name:'Weighted Sumo Squats', cue:'Wide and strong — take up space with every single rep',                             time:'12 reps'},
+        breath:   {name:'Ocean Breathing',     cue:'Breathe like you have all the time in the world — you do',                           time:'90 sec'}
+      },
+      {
+        label:'Cycle 2 — Rise', ns:'Sympathetic', color:'#f4845f',
+        somatic:  {name:'Undulations (Standing)', cue:'Full spine, full expression — let your body be as big as it actually is',         time:'90 sec'},
+        strength: {name:'Dumbbell Overhead Press', cue:'Drive overhead — feel how much your body can hold. More than you think.',        time:'10 reps'},
+        breath:   {name:'Fire Breath',            cue:'Ignite your belly — this is your power source, not performance',                 time:'90 sec'}
+      },
+      {
+        label:'Cycle 3 — Embody', ns:'Ventral Vagal', color:'#9b89c4',
+        somatic:  {name:'Full Body Shaking',   cue:'Shake off the performance — confidence isn\'t tension, it\'s regulation',           time:'60 sec'},
+        strength: {name:'Single Leg Deadlift', cue:'Balance IS confidence — slow, owned, grounded. You don\'t need to perform.',         time:'8 reps each'},
+        breath:   {name:'Alternating Nostril Breathing', cue:'You activated and you returned. That capacity is confidence. Remember this.', time:'2 min'}
+      }
+    ],
+    close: {name:'Power Pose Hold', cue:'Feet wide, hands on hips, chin up — 2 full minutes. Feel what regulation in a powerful body feels like.', time:'2 min'},
+    msg:"You inhabited yourself fully today. Confidence isn\'t found — it\'s practiced in the nervous system. You just practiced. 💪"
+  }
+};
+
+// ─── SCREEN NAV ──────────────────────────────────────────
+var ORDER = ['welcome','intake','emotion','goal','body','workout','timer','complete'];
+
+function go(name) {
+  var cur = document.getElementById('screen-' + S.screen);
+  var next = document.getElementById('screen-' + name);
+  if (!next) return;
+  if (cur) cur.classList.add('exit');
+  setTimeout(function() { if (cur) { cur.classList.remove('active','exit'); } }, 350);
+  next.classList.add('active');
+  // Restart animations on newly shown screen
+  next.querySelectorAll('.anim').forEach(function(el) {
+    el.style.animation = 'none';
+    el.offsetHeight; // reflow
+    el.style.animation = '';
+  });
+  S.history.push(name);
+  S.screen = name;
+  var bb = document.getElementById('backBtn');
+  bb.classList.toggle('hidden', name === 'welcome' || name === 'timer' || name === 'complete');
+}
+
+function goBack() {
+  if (S.history.length < 2) return;
+  S.history.pop();
+  var prev = S.history[S.history.length - 1];
+  var cur = document.getElementById('screen-' + S.screen);
+  var prevEl = document.getElementById('screen-' + prev);
+  if (!prevEl) return;
+  if (cur) cur.classList.remove('active');
+  prevEl.classList.add('active');
+  S.screen = prev;
+  var bb = document.getElementById('backBtn');
+  bb.classList.toggle('hidden', prev === 'welcome' || prev === 'timer' || prev === 'complete');
+}
+
+// ─── BUILD EMOTION SLIDERS ────────────────────────────────
+(function buildSliders() {
+  var container = document.getElementById('emotion-cards');
+  EQ.forEach(function(q) {
+    S.emotions[q.id] = 5;
+    var card = document.createElement('div');
+    card.className = 'emotion-card';
+    card.innerHTML =
+      '<div class="emotion-header">' +
+        '<div class="emotion-name">' + q.icon + ' ' + q.label + '</div>' +
+        '<div class="emotion-score" id="score-' + q.id + '">5</div>' +
+      '</div>' +
+      '<div class="emotion-labels"><span>' + q.low + '</span><span>' + q.high + '</span></div>' +
+      '<div class="slider-wrap">' +
+        '<input type="range" min="1" max="10" value="5" id="slider-' + q.id + '" oninput="updateSlider(\'' + q.id + '\',this.value)">' +
+      '</div>';
+    container.appendChild(card);
+  });
+})();
+
+function updateSlider(id, val) {
+  S.emotions[id] = parseInt(val);
+  document.getElementById('score-' + id).textContent = val;
+}
+
+// ─── INTAKE SUBMIT ────────────────────────────────────────
+function submitIntake() {
+  S.intake = {
+    name: document.getElementById('in-name').value || 'Friend',
+    age: document.getElementById('in-age').value,
+    weight: document.getElementById('in-weight').value,
+    height: document.getElementById('in-height').value,
+    gender: document.getElementById('in-gender').value || '',
+    fitness: document.getElementById('in-fitness').value || 'intermediate',
+    time: document.getElementById('in-time').value || '35',
+    injuries: document.getElementById('in-injuries').value
+  };
+  go('emotion');
+}
+
+// ─── GOAL SELECTION ───────────────────────────────────────
+function selectGoal(el, id, label, icon, color) {
+  document.querySelectorAll('.goal-card').forEach(function(c) { c.classList.remove('selected'); });
+  el.classList.add('selected');
+  S.goal = id;
+  S.goalLabel = label;
+  S.goalColor = color;
+  setTimeout(function() { go('body'); }, 280);
+}
+
+// ─── BODY SELECTION ───────────────────────────────────────
+function pickBody(el, type) {
+  document.querySelectorAll('.option-row').forEach(function(r) { r.classList.remove('selected'); });
+  el.classList.add('selected');
+  S.bodyState = type;
+  setTimeout(function() { buildWorkout(); }, 280);
+}
+
+// ─── BUILD WORKOUT ────────────────────────────────────────
+function buildWorkout() {
+  var w = WK[S.goal];
+  if (!w) { go('goal'); return; }
+  S.workout = w;
+
+  document.getElementById('wk-tag').textContent = w.tag;
+  document.getElementById('wk-title').textContent = w.title;
+  document.getElementById('wk-dur').textContent = '⏱ ' + w.dur;
+  document.getElementById('wk-int').textContent = '🔥 ' + w.intensity;
+
+  var secs = document.getElementById('wk-sections');
+  secs.innerHTML = '';
+
+  // Intro explainer
+  var intro = document.createElement('div');
+  intro.style.cssText = 'background:rgba(155,137,196,0.07);border:1px solid rgba(155,137,196,0.2);border-radius:12px;padding:14px 16px;margin-bottom:4px;font-size:12px;color:var(--muted);line-height:1.6;';
+  intro.innerHTML = '<span style="color:var(--purple);font-size:10px;letter-spacing:0.2em;text-transform:uppercase;">How This Works</span><br>Each cycle moves <strong style="color:var(--text)">Somatic → Strength → Breathwork</strong> — activating the sympathetic nervous system, then titrating back to ventral vagal. The sequencing is the therapy.';
+  secs.appendChild(intro);
+
+  // 3 cycles
+  w.cycles.forEach(function(cycle) {
+    var cycleDiv = document.createElement('div');
+    cycleDiv.className = 'wk-section';
+    cycleDiv.style.borderColor = cycle.color + '55';
+
+    var steps = [
+      { phase:'🌀 Somatic',    badge:'Nervous System',  ex: cycle.somatic  },
+      { phase:'💪 Strength',   badge:'Sympathetic ↑',   ex: cycle.strength },
+      { phase:'🌬 Breathwork', badge:'Ventral Vagal ↓', ex: cycle.breath   }
+    ];
+
+    var stepsHTML = steps.map(function(step) {
+      return '<div style="border-top:1px solid var(--border);padding:12px 14px;">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">' +
+          '<span style="font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted)">' + step.phase + '</span>' +
+          '<span style="font-size:9px;padding:2px 8px;border-radius:20px;background:' + cycle.color + '22;color:' + cycle.color + '">' + step.badge + '</span>' +
+        '</div>' +
+        '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;">' +
+          '<div style="flex:1">' +
+            '<div class="ex-name">' + step.ex.name + '</div>' +
+            '<div class="ex-cue">' + step.ex.cue + '</div>' +
+            '<button class="demo-btn" onclick="toggleDemo(this)">▶ Watch Demo</button>' +
+            '<div class="demo-panel">' + getDemoSVG(step.ex.name) + '</div>' +
+          '</div>' +
+          '<div class="ex-time">' + step.ex.time + '</div>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+
+    cycleDiv.innerHTML =
+      '<div class="wk-sec-head" style="border-bottom:1px solid ' + cycle.color + '33">' +
+        '<span style="font-size:11px;letter-spacing:0.05em;font-weight:500;">' + cycle.label + '</span>' +
+        '<span class="wk-sec-badge" style="background:' + cycle.color + '22;color:' + cycle.color + '">' + cycle.ns + '</span>' +
+      '</div>' +
+      stepsHTML;
+
+    secs.appendChild(cycleDiv);
+  });
+
+  // Closing
+  if (w.close) {
+    var closeDiv = document.createElement('div');
+    closeDiv.className = 'wk-section';
+    closeDiv.innerHTML =
+      '<div class="wk-sec-head"><span style="font-size:11px;letter-spacing:0.05em;">🧘 Closing</span>' +
+      '<span class="wk-sec-badge" style="background:rgba(126,200,200,0.15);color:#7ec8c8;">Integration</span></div>' +
+      '<div style="padding:14px 16px;display:flex;justify-content:space-between;align-items:flex-start;gap:10px;">' +
+        '<div><div class="ex-name">' + w.close.name + '</div><div class="ex-cue">' + w.close.cue + '</div></div>' +
+        '<div class="ex-time">' + w.close.time + '</div>' +
+      '</div>';
+    secs.appendChild(closeDiv);
+  }
+
+  go('workout');
+}
+
+// ─── TIMER ────────────────────────────────────────────────
+function parseSecs(t) {
+  if (!t) return 60;
+  var s = t.toLowerCase();
+  var m = s.match(/(\d+)\s*min/); if (m) return parseInt(m[1]) * 60;
+  var n = s.match(/\d+/); return n ? Math.min(parseInt(n[0]), 180) : 60;
+}
+
+function buildQueue() {
+  var w = S.workout; if (!w || !w.cycles) return [];
+  var q = [];
+  w.cycles.forEach(function(cycle) {
+    q.push({sec: cycle.label + ' — Somatic',    name: cycle.somatic.name,  cue: cycle.somatic.cue,  secs: parseSecs(cycle.somatic.time)});
+    q.push({sec: cycle.label + ' — Strength',   name: cycle.strength.name, cue: cycle.strength.cue, secs: parseSecs(cycle.strength.time)});
+    q.push({sec: cycle.label + ' — Breathwork', name: cycle.breath.name,   cue: cycle.breath.cue,   secs: parseSecs(cycle.breath.time)});
+  });
+  if (w.close) q.push({sec:'Closing', name: w.close.name, cue: w.close.cue, secs: parseSecs(w.close.time)});
+  return q;
+}
+
+function startTimer() {
+  S.queue = buildQueue();
+  S.qi = 0;
+  loadEx(0);
+  go('timer');
+}
+
+function loadEx(i) {
+  var ex = S.queue[i]; if (!ex) return;
+  S.secs = ex.secs; S.total = ex.secs;
+  if (S.iv) clearInterval(S.iv);
+  S.running = false;
+  document.getElementById('playBtn').textContent = '▶';
+  document.getElementById('tmr-sec').textContent = ex.sec;
+  document.getElementById('tmr-name').textContent = ex.name;
+  document.getElementById('tmr-cue').textContent = ex.cue;
+  tickUI(); buildDots();
+}
+
+function tickUI() {
+  var s = S.secs, m = Math.floor(s/60), sec = s%60;
+  document.getElementById('tmr-digits').textContent = m + ':' + (sec < 10 ? '0' : '') + sec;
+  var c = 521, off = c * (1 - s/S.total);
+  document.getElementById('tmr-ring').style.strokeDashoffset = off;
+}
+
+function buildDots() {
+  var bar = document.getElementById('tmr-dots'); bar.innerHTML = '';
+  S.queue.forEach(function(_, i) {
+    var d = document.createElement('div');
+    d.className = 'pdot' + (i < S.qi ? ' done' : i === S.qi ? ' cur' : '');
+    bar.appendChild(d);
+  });
+}
+
+function toggleTimer() {
+  if (S.running) {
+    clearInterval(S.iv); S.running = false;
+    document.getElementById('playBtn').textContent = '▶';
+  } else {
+    S.running = true;
+    document.getElementById('playBtn').textContent = '⏸';
+    S.iv = setInterval(function() {
+      S.secs--;
+      tickUI();
+      if (S.secs <= 0) { clearInterval(S.iv); S.running = false; nextEx(); }
+    }, 1000);
+  }
+}
+
+function nextEx() {
+  if (S.iv) clearInterval(S.iv); S.running = false;
+  S.qi++;
+  if (S.qi >= S.queue.length) {
+    document.getElementById('complete-msg').textContent = (S.workout && S.workout.msg) || 'Practice complete. Well done.';
+    go('complete');
+  } else { loadEx(S.qi); }
+}
+
+function prevEx() {
+  if (S.iv) clearInterval(S.iv); S.running = false;
+  if (S.qi > 0) S.qi--;
+  loadEx(S.qi);
+}
+
+// ─── DEMO TOGGLE ─────────────────────────────────────────
+function toggleDemo(btn) {
+  var panel = btn.nextElementSibling;
+  var open = panel.classList.toggle('open');
+  btn.textContent = open ? '▲ Hide Demo' : '▶ Watch Demo';
+}
+
+// ─── DEMO SVG LIBRARY ─────────────────────────────────────
+var DEMOS = {
+  // SOMATIC
+  'Full Body Shaking': `<svg viewBox="0 0 120 160" xmlns="http://www.w3.org/2000/svg">
+    <style>
+      @keyframes shk{0%,100%{transform:translateX(0)}25%{transform:translateX(-3px)}75%{transform:translateX(3px)}}
+      .sf{animation:shk 0.15s infinite;transform-origin:60px 80px;}
+    </style>
+    <line x1="10" y1="150" x2="110" y2="150" stroke="rgba(255,255,255,0.15)" stroke-width="2"/>
+    <g class="sf">
+      <circle cx="60" cy="22" r="10" fill="#e8d5c4" stroke="rgba(255,255,255,0.6)" stroke-width="1.5"/>
+      <line x1="60" y1="32" x2="60" y2="88" stroke="rgba(255,255,255,0.85)" stroke-width="4" stroke-linecap="round"/>
+      <line x1="60" y1="50" x2="38" y2="70" stroke="rgba(255,255,255,0.85)" stroke-width="3.5" stroke-linecap="round"/>
+      <line x1="60" y1="50" x2="82" y2="70" stroke="rgba(255,255,255,0.85)" stroke-width="3.5" stroke-linecap="round"/>
+      <line x1="60" y1="88" x2="44" y2="125" stroke="rgba(255,255,255,0.85)" stroke-width="3.5" stroke-linecap="round"/>
+      <line x1="60" y1="88" x2="76" y2="125" stroke="rgba(255,255,255,0.85)" stroke-width="3.5" stroke-linecap="round"/>
+      <line x1="44" y1="125" x2="40" y2="148" stroke="rgba(255,255,255,0.85)" stroke-width="3.5" stroke-linecap="round"/>
+      <line x1="76" y1="125" x2="80" y2="148" stroke="rgba(255,255,255,0.85)" stroke-width="3.5" stroke-linecap="round"/>
+    </g>
+    <circle cx="30" cy="60" r="2.5" fill="#9b89c4" opacity="0.7"><animate attributeName="opacity" values="0.7;0;0.7" dur="0.3s" repeatCount="indefinite"/></circle>
+    <circle cx="90" cy="75" r="2" fill="#7ec8c8" opacity="0.6"><animate attributeName="opacity" values="0.6;0;0.6" dur="0.25s" begin="0.1s" repeatCount="indefinite"/></circle>
+    <circle cx="25" cy="100" r="1.5" fill="#9b89c4" opacity="0.5"><animate attributeName="opacity" values="0.5;0;0.5" dur="0.35s" begin="0.05s" repeatCount="indefinite"/></circle>
+  </svg>`,
+
+  'Rocking': `<svg viewBox="0 0 120 160" xmlns="http://www.w3.org/2000/svg">
+    <style>
+      @keyframes rock{0%,100%{transform:rotate(-8deg)}50%{transform:rotate(8deg)}}
+      .rf{animation:rock 1.6s infinite ease-in-out;transform-origin:60px 110px;}
+    </style>
+    <ellipse cx="60" cy="148" rx="40" ry="6" fill="rgba(255,255,255,0.08)"/>
+    <g class="rf">
+      <circle cx="60" cy="28" r="10" fill="#e8d5c4" stroke="rgba(255,255,255,0.6)" stroke-width="1.5"/>
+      <line x1="60" y1="38" x2="60" y2="92" stroke="rgba(255,255,255,0.85)" stroke-width="4" stroke-linecap="round"/>
+      <line x1="60" y1="52" x2="36" y2="72" stroke="rgba(255,255,255,0.85)" stroke-width="3.5" stroke-linecap="round"/>
+      <line x1="60" y1="52" x2="84" y2="72" stroke="rgba(255,255,255,0.85)" stroke-width="3.5" stroke-linecap="round"/>
+      <line x1="60" y1="92" x2="46" y2="128" stroke="rgba(255,255,255,0.85)" stroke-width="3.5" stroke-linecap="round"/>
+      <line x1="60" y1="92" x2="74" y2="128" stroke="rgba(255,255,255,0.85)" stroke-width="3.5" stroke-linecap="round"/>
+    </g>
+  </svg>`,
+
+  'Stomping (Standing)': `<svg viewBox="0 0 120 160" xmlns="http://www.w3.org/2000/svg">
+    <style>
+      @keyframes lleg{0%,100%{transform:translateY(0)}50%{transform:translateY(-18px)}}
+      @keyframes rleg{0%,100%{transform:translateY(-18px)}50%{transform:translateY(0)}}
+      @keyframes imp{0%,100%{opacity:0;r:0}40%{opacity:0.6;r:8}60%{opacity:0}}
+      .ll{animation:lleg 0.7s infinite ease-in-out;transform-origin:48px 100px;}
+      .rl{animation:rleg 0.7s infinite ease-in-out;transform-origin:72px 100px;}
+    </style>
+    <circle cx="48" cy="148" r="0" fill="#9b89c4"><animate attributeName="r" values="0;10;0" dur="0.7s" repeatCount="indefinite"/><animate attributeName="opacity" values="0;0.4;0" dur="0.7s" repeatCount="indefinite"/></circle>
+    <circle cx="72" cy="148" r="0" fill="#9b89c4"><animate attributeName="r" values="0;10;0" dur="0.7s" begin="0.35s" repeatCount="indefinite"/><animate attributeName="opacity" values="0;0.4;0" dur="0.7s" begin="0.35s" repeatCount="indefinite"/></circle>
+    <circle cx="60" cy="22" r="10" fill="#e8d5c4" stroke="rgba(255,255,255,0.6)" stroke-width="1.5"/>
+    <line x1="60" y1="32" x2="60" y2="88" stroke="rgba(255,255,255,0.85)" stroke-width="4" stroke-linecap="round"/>
+    <line x1="60" y1="50" x2="38" y2="68" stroke="rgba(255,255,255,0.85)" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="60" y1="50" x2="82" y2="68" stroke="rgba(255,255,255,0.85)" stroke-width="3.5" stroke-linecap="round"/>
+    <g class="ll"><line x1="60" y1="88" x2="48" y2="122" stroke="rgba(255,255,255,0.85)" stroke-width="3.5" stroke-linecap="round"/><line x1="48" y1="122" x2="44" y2="148" stroke="rgba(255,255,255,0.85)" stroke-width="3.5" stroke-linecap="round"/></g>
+    <g class="rl"><line x1="60" y1="88" x2="72" y2="122" stroke="rgba(255,255,255,0.85)" stroke-width="3.5" stroke-linecap="round"/><line x1="72" y1="122" x2="76" y2="148" stroke="rgba(255,255,255,0.85)" stroke-width="3.5" stroke-linecap="round"/></g>
+  </svg>`,
+
+  'Bilateral Knee Lifts': `<svg viewBox="0 0 120 160" xmlns="http://www.w3.org/2000/svg">
+    <style>
+      @keyframes lkn{0%,100%{transform:rotate(0deg)}50%{transform:rotate(-50deg)}}
+      @keyframes rkn{0%,100%{transform:rotate(-50deg)}50%{transform:rotate(0deg)}}
+      .lk{animation:lkn 0.9s infinite ease-in-out;transform-origin:48px 100px;}
+      .rk{animation:rkn 0.9s infinite ease-in-out;transform-origin:72px 100px;}
+    </style>
+    <line x1="20" y1="150" x2="100" y2="150" stroke="rgba(255,255,255,0.15)" stroke-width="2"/>
+    <circle cx="60" cy="22" r="10" fill="#e8d5c4" stroke="rgba(255,255,255,0.6)" stroke-width="1.5"/>
+    <line x1="60" y1="32" x2="60" y2="90" stroke="rgba(255,255,255,0.85)" stroke-width="4" stroke-linecap="round"/>
+    <line x1="60" y1="52" x2="36" y2="72" stroke="rgba(255,255,255,0.85)" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="60" y1="52" x2="84" y2="72" stroke="rgba(255,255,255,0.85)" stroke-width="3.5" stroke-linecap="round"/>
+    <g class="lk"><line x1="48" y1="100" x2="44" y2="130" stroke="rgba(255,255,255,0.85)" stroke-width="3.5" stroke-linecap="round"/><line x1="44" y1="130" x2="42" y2="148" stroke="rgba(255,255,255,0.7)" stroke-width="3.5" stroke-linecap="round"/></g>
+    <g class="rk"><line x1="72" y1="100" x2="76" y2="130" stroke="rgba(255,255,255,0.85)" stroke-width="3.5" stroke-linecap="round"/><line x1="76" y1="130" x2="78" y2="148" stroke="rgba(255,255,255,0.7)" stroke-width="3.5" stroke-linecap="round"/></g>
+  </svg>`,
+
+  'Undulations (Standing)': `<svg viewBox="0 0 120 160" xmlns="http://www.w3.org/2000/svg">
+    <style>
+      @keyframes wave{0%{d:path("M60,38 Q55,60 60,82 Q65,104 60,126")}33%{d:path("M60,38 Q65,60 58,82 Q55,104 60,126")}66%{d:path("M60,38 Q57,60 63,82 Q67,104 60,126")}100%{d:path("M60,38 Q55,60 60,82 Q65,104 60,126")}}
+      .spine{animation:wave 2s infinite ease-in-out;}
+    </style>
+    <line x1="20" y1="150" x2="100" y2="150" stroke="rgba(255,255,255,0.15)" stroke-width="2"/>
+    <circle cx="60" cy="22" r="10" fill="#e8d5c4" stroke="rgba(255,255,255,0.6)" stroke-width="1.5"/>
+    <path class="spine" d="M60,38 Q55,60 60,82 Q65,104 60,126" fill="none" stroke="rgba(255,255,255,0.85)" stroke-width="4" stroke-linecap="round"/>
+    <line x1="60" y1="52" x2="36" y2="70" stroke="rgba(255,255,255,0.75)" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="60" y1="52" x2="84" y2="70" stroke="rgba(255,255,255,0.75)" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="60" y1="120" x2="46" y2="148" stroke="rgba(255,255,255,0.85)" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="60" y1="120" x2="74" y2="148" stroke="rgba(255,255,255,0.85)" stroke-width="3.5" stroke-linecap="round"/>
+  </svg>`,
+
+  'Rebounding / Pulsing': `<svg viewBox="0 0 120 160" xmlns="http://www.w3.org/2000/svg">
+    <style>
+      @keyframes bounce{0%,100%{transform:translateY(0)}45%{transform:translateY(-22px)}55%{transform:translateY(-22px)}}
+      @keyframes shadow{0%,100%{rx:18;opacity:0.25}45%{rx:10;opacity:0.1}}
+      .bf{animation:bounce 0.65s infinite ease-in-out;transform-origin:60px 80px;}
+    </style>
+    <ellipse cx="60" cy="150" rx="18" ry="5" fill="rgba(155,137,196,0.25)"><animate attributeName="rx" values="18;10;18" dur="0.65s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.25;0.1;0.25" dur="0.65s" repeatCount="indefinite"/></ellipse>
+    <g class="bf">
+      <circle cx="60" cy="24" r="10" fill="#e8d5c4" stroke="rgba(255,255,255,0.6)" stroke-width="1.5"/>
+      <line x1="60" y1="34" x2="60" y2="88" stroke="rgba(255,255,255,0.85)" stroke-width="4" stroke-linecap="round"/>
+      <line x1="60" y1="50" x2="34" y2="66" stroke="rgba(255,255,255,0.85)" stroke-width="3.5" stroke-linecap="round"/>
+      <line x1="60" y1="50" x2="86" y2="66" stroke="rgba(255,255,255,0.85)" stroke-width="3.5" stroke-linecap="round"/>
+      <line x1="60" y1="88" x2="48" y2="122" stroke="rgba(255,255,255,0.85)" stroke-width="3.5" stroke-linecap="round"/>
+      <line x1="60" y1="88" x2="72" y2="122" stroke="rgba(255,255,255,0.85)" stroke-width="3.5" stroke-linecap="round"/>
+      <line x1="48" y1="122" x2="44" y2="146" stroke="rgba(255,255,255,0.85)" stroke-width="3.5" stroke-linecap="round"/>
+      <line x1="72" y1="122" x2="76" y2="146" stroke="rgba(255,255,255,0.85)" stroke-width="3.5" stroke-linecap="round"/>
+    </g>
+  </svg>`,
+
+  // BREATHWORK
+  'Ocean Breathing': `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+    <style>
+      @keyframes chest{0%,100%{transform:scaleY(1)}50%{transform:scaleY(1.12)}}
+      @keyframes wave2{0%{transform:translateX(0)}100%{transform:translateX(-40px)}}
+      .torso{animation:chest 3s infinite ease-in-out;transform-origin:60px 60px;}
+    </style>
+    <g class="torso">
+      <circle cx="60" cy="22" r="10" fill="#e8d5c4" stroke="rgba(255,255,255,0.6)" stroke-width="1.5"/>
+      <line x1="60" y1="32" x2="60" y2="80" stroke="rgba(255,255,255,0.85)" stroke-width="4" stroke-linecap="round"/>
+      <line x1="60" y1="46" x2="38" y2="64" stroke="rgba(255,255,255,0.85)" stroke-width="3.5" stroke-linecap="round"/>
+      <line x1="60" y1="46" x2="82" y2="64" stroke="rgba(255,255,255,0.85)" stroke-width="3.5" stroke-linecap="round"/>
+    </g>
+    <path d="M10,100 Q30,88 50,100 Q70,112 90,100 Q110,88 130,100" fill="none" stroke="#7ec8c8" stroke-width="2" opacity="0.6"><animate attributeName="d" values="M10,100 Q30,88 50,100 Q70,112 90,100 Q110,88 130,100;M10,104 Q30,92 50,104 Q70,116 90,104 Q110,92 130,104;M10,100 Q30,88 50,100 Q70,112 90,100 Q110,88 130,100" dur="3s" repeatCount="indefinite"/></path>
+    <path d="M-10,112 Q10,100 30,112 Q50,124 70,112 Q90,100 110,112" fill="none" stroke="#7ec8c8" stroke-width="1.5" opacity="0.35"><animate attributeName="d" values="M-10,112 Q10,100 30,112 Q50,124 70,112 Q90,100 110,112;M-10,108 Q10,96 30,108 Q50,120 70,108 Q90,96 110,108;M-10,112 Q10,100 30,112 Q50,124 70,112 Q90,100 110,112" dur="3s" begin="0.3s" repeatCount="indefinite"/></path>
+  </svg>`,
+
+  'Bumblebee Breath': `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+    <style>
+      @keyframes hum{0%,100%{r:18;opacity:0.15}50%{r:32;opacity:0.05}}
+      @keyframes hum2{0%,100%{r:10;opacity:0.25}50%{r:20;opacity:0.1}}
+    </style>
+    <circle cx="60" cy="55" r="10" fill="#e8d5c4" stroke="rgba(255,255,255,0.6)" stroke-width="1.5"/>
+    <line x1="60" y1="65" x2="60" y2="100" stroke="rgba(255,255,255,0.85)" stroke-width="4" stroke-linecap="round"/>
+    <line x1="60" y1="75" x2="38" y2="90" stroke="rgba(255,255,255,0.85)" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="60" y1="75" x2="82" y2="90" stroke="rgba(255,255,255,0.85)" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="38" y1="90" x2="34" y2="108" stroke="rgba(255,255,255,0.7)" stroke-width="3" stroke-linecap="round"/>
+    <line x1="82" y1="90" x2="86" y2="108" stroke="rgba(255,255,255,0.7)" stroke-width="3" stroke-linecap="round"/>
+    <circle cx="60" cy="55" r="18" fill="none" stroke="#9b89c4" stroke-width="1.5"><animate attributeName="r" values="18;32;18" dur="2.5s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.4;0;0.4" dur="2.5s" repeatCount="indefinite"/></circle>
+    <circle cx="60" cy="55" r="10" fill="none" stroke="#c4a8f0" stroke-width="1"><animate attributeName="r" values="10;20;10" dur="2.5s" begin="0.2s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.6;0;0.6" dur="2.5s" begin="0.2s" repeatCount="indefinite"/></circle>
+    <text x="60" y="20" text-anchor="middle" font-size="16" fill="#c4a8f0" opacity="0.7">♪</text>
+  </svg>`,
+
+  'Fire Breath': `<svg viewBox="0 0 120 130" xmlns="http://www.w3.org/2000/svg">
+    <style>
+      @keyframes fire{0%,100%{transform:scaleY(1) translateY(0)}50%{transform:scaleY(1.2) translateY(-4px)}}
+      @keyframes flicker{0%,100%{opacity:0.8;transform:scale(1)}50%{opacity:0.4;transform:scale(0.8)}}
+      .flame{animation:fire 0.3s infinite ease-in-out;transform-origin:60px 80px;}
+    </style>
+    <circle cx="60" cy="22" r="10" fill="#e8d5c4" stroke="rgba(255,255,255,0.6)" stroke-width="1.5"/>
+    <line x1="60" y1="32" x2="60" y2="86" stroke="rgba(255,255,255,0.85)" stroke-width="4" stroke-linecap="round"/>
+    <line x1="60" y1="48" x2="38" y2="65" stroke="rgba(255,255,255,0.85)" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="60" y1="48" x2="82" y2="65" stroke="rgba(255,255,255,0.85)" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="60" y1="86" x2="48" y2="118" stroke="rgba(255,255,255,0.85)" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="60" y1="86" x2="72" y2="118" stroke="rgba(255,255,255,0.85)" stroke-width="3.5" stroke-linecap="round"/>
+    <g class="flame">
+      <ellipse cx="60" cy="60" rx="8" ry="12" fill="#f4845f" opacity="0.5"/>
+      <ellipse cx="60" cy="58" rx="5" ry="8" fill="#f9c74f" opacity="0.6"/>
+    </g>
+  </svg>`,
+
+  'Boxed Breathing': `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+    <style>
+      @keyframes dot{0%{offset-distance:0%}100%{offset-distance:100%}}
+      .tracer{offset-path:path("M30,30 L90,30 L90,90 L30,90 Z");animation:dot 4s infinite linear;offset-distance:0%;}
+    </style>
+    <rect x="28" y="28" width="64" height="64" rx="4" fill="none" stroke="rgba(155,137,196,0.3)" stroke-width="1.5" stroke-dasharray="4 4"/>
+    <text x="60" y="16" text-anchor="middle" font-size="8" fill="#9b89c4" font-family="DM Sans,sans-serif">IN</text>
+    <text x="105" y="63" text-anchor="middle" font-size="8" fill="#9b89c4" font-family="DM Sans,sans-serif">HOLD</text>
+    <text x="60" y="110" text-anchor="middle" font-size="8" fill="#9b89c4" font-family="DM Sans,sans-serif">OUT</text>
+    <text x="14" y="63" text-anchor="middle" font-size="8" fill="#9b89c4" font-family="DM Sans,sans-serif">HOLD</text>
+    <circle class="tracer" r="6" fill="#c4a8f0"/>
+  </svg>`,
+
+  'Alternating Nostril Breathing': `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+    <style>
+      @keyframes leftFlow{0%,45%,100%{opacity:0}10%,35%{opacity:0.8}}
+      @keyframes rightFlow{50%,100%{opacity:0}60%,90%{opacity:0.8}}
+      .lf{animation:leftFlow 4s infinite;}
+      .rf{animation:rightFlow 4s infinite;}
+    </style>
+    <circle cx="60" cy="35" r="14" fill="#e8d5c4" stroke="rgba(255,255,255,0.5)" stroke-width="1.5"/>
+    <ellipse cx="55" cy="42" rx="4" ry="3" fill="rgba(0,0,0,0.2)"/>
+    <ellipse cx="65" cy="42" rx="4" ry="3" fill="rgba(0,0,0,0.2)"/>
+    <line x1="60" y1="49" x2="60" y2="95" stroke="rgba(255,255,255,0.85)" stroke-width="4" stroke-linecap="round"/>
+    <line x1="60" y1="62" x2="34" y2="50" stroke="rgba(255,255,255,0.85)" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="60" y1="62" x2="86" y2="50" stroke="rgba(255,255,255,0.85)" stroke-width="3.5" stroke-linecap="round"/>
+    <path class="lf" d="M55,42 Q40,35 28,42" fill="none" stroke="#7ec8c8" stroke-width="2.5" stroke-linecap="round"/>
+    <path class="rf" d="M65,42 Q80,35 92,42" fill="none" stroke="#c4a8f0" stroke-width="2.5" stroke-linecap="round"/>
+    <circle cx="34" cy="50" r="4" fill="rgba(255,255,255,0.15)"><animate attributeName="opacity" values="0.15;0.5;0.15" dur="4s" repeatCount="indefinite"/></circle>
+  </svg>`,
+
+  // STRENGTH / CONDITIONING
+  'Bodyweight Squats': `<svg viewBox="0 0 120 160" xmlns="http://www.w3.org/2000/svg">
+    <style>
+      @keyframes squat{0%,100%{transform:translateY(0)}50%{transform:translateY(22px)}}
+      .sq{animation:squat 1.8s infinite ease-in-out;transform-origin:60px 60px;}
+    </style>
+    <line x1="15" y1="150" x2="105" y2="150" stroke="rgba(255,255,255,0.15)" stroke-width="2"/>
+    <g class="sq">
+      <circle cx="60" cy="22" r="10" fill="#e8d5c4" stroke="rgba(255,255,255,0.6)" stroke-width="1.5"/>
+      <line x1="60" y1="32" x2="60" y2="80" stroke="rgba(255,255,255,0.85)" stroke-width="4" stroke-linecap="round"/>
+      <line x1="60" y1="48" x2="36" y2="64" stroke="rgba(255,255,255,0.85)" stroke-width="3.5" stroke-linecap="round"/>
+      <line x1="60" y1="48" x2="84" y2="64" stroke="rgba(255,255,255,0.85)" stroke-width="3.5" stroke-linecap="round"/>
+      <line x1="60" y1="80" x2="42" y2="112" stroke="rgba(255,255,255,0.85)" stroke-width="3.5" stroke-linecap="round"/>
+      <line x1="60" y1="80" x2="78" y2="112" stroke="rgba(255,255,255,0.85)" stroke-width="3.5" stroke-linecap="round"/>
+      <line x1="42" y1="112" x2="38" y2="128" stroke="rgba(255,255,255,0.85)" stroke-width="3.5" stroke-linecap="round"/>
+      <line x1="78" y1="112" x2="82" y2="128" stroke="rgba(255,255,255,0.85)" stroke-width="3.5" stroke-linecap="round"/>
+    </g>
+  </svg>`,
+
+  'Dead Bug Core': `<svg viewBox="0 0 160 120" xmlns="http://www.w3.org/2000/svg">
+    <style>
+      @keyframes larm{0%,100%{transform:rotate(0deg)}50%{transform:rotate(-40deg)}}
+      @keyframes rleg2{0%,100%{transform:rotate(0deg)}50%{transform:rotate(35deg)}}
+      @keyframes rarm{0%,100%{transform:rotate(-40deg)}50%{transform:rotate(0deg)}}
+      @keyframes lleg2{0%,100%{transform:rotate(35deg)}50%{transform:rotate(0deg)}}
+      .la{animation:larm 2s infinite ease-in-out;transform-origin:72px 50px;}
+      .rl2{animation:rleg2 2s infinite ease-in-out;transform-origin:88px 70px;}
+      .ra{animation:rarm 2s infinite ease-in-out;transform-origin:88px 50px;}
+      .ll2{animation:lleg2 2s infinite ease-in-out;transform-origin:72px 70px;}
+    </style>
+    <ellipse cx="80" cy="105" rx="60" ry="6" fill="rgba(255,255,255,0.06)"/>
+    <line x1="60" y1="55" x2="100" y2="55" stroke="rgba(255,255,255,0.85)" stroke-width="4.5" stroke-linecap="round"/>
+    <circle cx="80" cy="42" r="10" fill="#e8d5c4" stroke="rgba(255,255,255,0.6)" stroke-width="1.5"/>
+    <g class="la"><line x1="72" y1="50" x2="44" y2="36" stroke="rgba(255,255,255,0.85)" stroke-width="3.5" stroke-linecap="round"/></g>
+    <g class="ra"><line x1="88" y1="50" x2="116" y2="36" stroke="rgba(255,255,255,0.85)" stroke-width="3.5" stroke-linecap="round"/></g>
+    <g class="ll2"><line x1="72" y1="70" x2="56" y2="96" stroke="rgba(255,255,255,0.85)" stroke-width="3.5" stroke-linecap="round"/></g>
+    <g class="rl2"><line x1="88" y1="70" x2="104" y2="96" stroke="rgba(255,255,255,0.85)" stroke-width="3.5" stroke-linecap="round"/></g>
+  </svg>`,
+
+  'Glute Bridges': `<svg viewBox="0 0 160 120" xmlns="http://www.w3.org/2000/svg">
+    <style>
+      @keyframes bridge{0%,100%{transform:translateY(0)}50%{transform:translateY(-18px)}}
+      .hips{animation:bridge 1.8s infinite ease-in-out;transform-origin:80px 65px;}
+    </style>
+    <line x1="10" y1="108" x2="150" y2="108" stroke="rgba(255,255,255,0.15)" stroke-width="2"/>
+    <line x1="30" y1="72" x2="65" y2="108" stroke="rgba(255,255,255,0.85)" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="130" y1="72" x2="95" y2="108" stroke="rgba(255,255,255,0.85)" stroke-width="3.5" stroke-linecap="round"/>
+    <g class="hips">
+      <circle cx="80" cy="38" r="10" fill="#e8d5c4" stroke="rgba(255,255,255,0.6)" stroke-width="1.5"/>
+      <line x1="80" y1="48" x2="80" y2="70" stroke="rgba(255,255,255,0.85)" stroke-width="4" stroke-linecap="round"/>
+      <line x1="80" y1="58" x2="56" y2="50" stroke="rgba(255,255,255,0.85)" stroke-width="3.5" stroke-linecap="round"/>
+      <line x1="80" y1="58" x2="104" y2="50" stroke="rgba(255,255,255,0.85)" stroke-width="3.5" stroke-linecap="round"/>
+      <line x1="80" y1="70" x2="65" y2="72" stroke="rgba(255,255,255,0.85)" stroke-width="3.5" stroke-linecap="round"/>
+      <line x1="80" y1="70" x2="95" y2="72" stroke="rgba(255,255,255,0.85)" stroke-width="3.5" stroke-linecap="round"/>
+    </g>
+  </svg>`,
+
+  'Dumbbell Deadlifts': `<svg viewBox="0 0 120 160" xmlns="http://www.w3.org/2000/svg">
+    <style>
+      @keyframes dl{0%,100%{transform:translateY(0) rotate(0deg)}50%{transform:translateY(18px) rotate(12deg)}}
+      .dlb{animation:dl 2s infinite ease-in-out;transform-origin:60px 80px;}
+    </style>
+    <line x1="15" y1="150" x2="105" y2="150" stroke="rgba(255,255,255,0.15)" stroke-width="2"/>
+    <g class="dlb">
+      <circle cx="60" cy="22" r="10" fill="#e8d5c4" stroke="rgba(255,255,255,0.6)" stroke-width="1.5"/>
+      <line x1="60" y1="32" x2="60" y2="88" stroke="rgba(255,255,255,0.85)" stroke-width="4" stroke-linecap="round"/>
+      <line x1="60" y1="50" x2="36" y2="72" stroke="rgba(255,255,255,0.85)" stroke-width="3.5" stroke-linecap="round"/>
+      <line x1="60" y1="50" x2="84" y2="72" stroke="rgba(255,255,255,0.85)" stroke-width="3.5" stroke-linecap="round"/>
+      <rect x="24" y="70" width="14" height="6" rx="3" fill="#9b89c4" opacity="0.8"/>
+      <rect x="82" y="70" width="14" height="6" rx="3" fill="#9b89c4" opacity="0.8"/>
+      <line x1="60" y1="88" x2="46" y2="122" stroke="rgba(255,255,255,0.85)" stroke-width="3.5" stroke-linecap="round"/>
+      <line x1="60" y1="88" x2="74" y2="122" stroke="rgba(255,255,255,0.85)" stroke-width="3.5" stroke-linecap="round"/>
+      <line x1="46" y1="122" x2="42" y2="148" stroke="rgba(255,255,255,0.85)" stroke-width="3.5" stroke-linecap="round"/>
+      <line x1="74" y1="122" x2="78" y2="148" stroke="rgba(255,255,255,0.85)" stroke-width="3.5" stroke-linecap="round"/>
+    </g>
+  </svg>`,
+
+  'Dumbbell Overhead Press': `<svg viewBox="0 0 120 160" xmlns="http://www.w3.org/2000/svg">
+    <style>
+      @keyframes press{0%,100%{transform:translateY(0)}50%{transform:translateY(-14px)}}
+      .arms{animation:press 1.8s infinite ease-in-out;transform-origin:60px 55px;}
+    </style>
+    <line x1="15" y1="150" x2="105" y2="150" stroke="rgba(255,255,255,0.15)" stroke-width="2"/>
+    <circle cx="60" cy="22" r="10" fill="#e8d5c4" stroke="rgba(255,255,255,0.6)" stroke-width="1.5"/>
+    <line x1="60" y1="32" x2="60" y2="90" stroke="rgba(255,255,255,0.85)" stroke-width="4" stroke-linecap="round"/>
+    <g class="arms">
+      <line x1="60" y1="52" x2="34" y2="40" stroke="rgba(255,255,255,0.85)" stroke-width="3.5" stroke-linecap="round"/>
+      <line x1="60" y1="52" x2="86" y2="40" stroke="rgba(255,255,255,0.85)" stroke-width="3.5" stroke-linecap="round"/>
+      <rect x="20" y="34" width="16" height="6" rx="3" fill="#9b89c4" opacity="0.85"/>
+      <rect x="84" y="34" width="16" height="6" rx="3" fill="#9b89c4" opacity="0.85"/>
+    </g>
+    <line x1="60" y1="90" x2="46" y2="122" stroke="rgba(255,255,255,0.85)" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="60" y1="90" x2="74" y2="122" stroke="rgba(255,255,255,0.85)" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="46" y1="122" x2="42" y2="148" stroke="rgba(255,255,255,0.85)" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="74" y1="122" x2="78" y2="148" stroke="rgba(255,255,255,0.85)" stroke-width="3.5" stroke-linecap="round"/>
+  </svg>`,
+
+  'Plank Hold': `<svg viewBox="0 0 160 100" xmlns="http://www.w3.org/2000/svg">
+    <style>
+      @keyframes breathe{0%,100%{transform:scaleY(1)}50%{transform:scaleY(1.07)}}
+      .pb{animation:breathe 3s infinite ease-in-out;transform-origin:80px 55px;}
+    </style>
+    <line x1="10" y1="88" x2="150" y2="88" stroke="rgba(255,255,255,0.15)" stroke-width="2"/>
+    <g class="pb">
+      <circle cx="130" cy="35" r="10" fill="#e8d5c4" stroke="rgba(255,255,255,0.6)" stroke-width="1.5"/>
+      <line x1="120" y1="40" x2="30" y2="58" stroke="rgba(255,255,255,0.85)" stroke-width="5" stroke-linecap="round"/>
+      <line x1="120" y1="40" x2="110" y2="58" stroke="rgba(255,255,255,0.85)" stroke-width="3.5" stroke-linecap="round"/>
+      <line x1="30" y1="58" x2="22" y2="86" stroke="rgba(255,255,255,0.85)" stroke-width="3.5" stroke-linecap="round"/>
+      <line x1="70" y1="60" x2="62" y2="86" stroke="rgba(255,255,255,0.85)" stroke-width="3.5" stroke-linecap="round"/>
+    </g>
+  </svg>`
+};
+
+// Default demo for exercises without a specific one
+var DEFAULT_DEMO = `<svg viewBox="0 0 120 160" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+    .fig{animation:pulse 2s infinite ease-in-out;transform-origin:60px 80px;}
+  </style>
+  <line x1="20" y1="150" x2="100" y2="150" stroke="rgba(255,255,255,0.15)" stroke-width="2"/>
+  <g class="fig">
+    <circle cx="60" cy="22" r="10" fill="#e8d5c4" stroke="rgba(255,255,255,0.6)" stroke-width="1.5"/>
+    <line x1="60" y1="32" x2="60" y2="90" stroke="rgba(255,255,255,0.85)" stroke-width="4" stroke-linecap="round"/>
+    <line x1="60" y1="50" x2="36" y2="68" stroke="rgba(255,255,255,0.85)" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="60" y1="50" x2="84" y2="68" stroke="rgba(255,255,255,0.85)" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="60" y1="90" x2="46" y2="124" stroke="rgba(255,255,255,0.85)" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="60" y1="90" x2="74" y2="124" stroke="rgba(255,255,255,0.85)" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="46" y1="124" x2="42" y2="148" stroke="rgba(255,255,255,0.85)" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="74" y1="124" x2="78" y2="148" stroke="rgba(255,255,255,0.85)" stroke-width="3.5" stroke-linecap="round"/>
+  </g>
+</svg>`;
+
+function getDemoSVG(name) {
+  return DEMOS[name] || DEFAULT_DEMO;
+}
+
+</script>
+</body>
+</html>
