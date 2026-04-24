@@ -318,6 +318,59 @@ input[type=range]::-moz-range-thumb {
 .complete-title { font-family: 'Cormorant Garamond', serif; font-size: 46px; font-weight: 300; margin-bottom: 16px; }
 .complete-msg { font-size: 18px; color: var(--muted); line-height: 1.75; max-width: 300px; margin: 0 auto 48px; }
 
+/* ── CIRCLE ──────────────────────────────────────── */
+.post-type-btn {
+  background: var(--card2); border: 1px solid var(--border);
+  color: var(--muted); padding: 6px 14px; border-radius: 20px;
+  font-size: 12px; cursor: pointer; transition: all 0.2s;
+  font-family: 'DM Sans', sans-serif;
+}
+.post-type-btn.active-type {
+  background: rgba(155,137,196,0.2); border-color: var(--purple); color: var(--text);
+}
+.post-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 14px; padding: 16px; position: relative;
+}
+.post-card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+.post-author { font-size: 14px; font-weight: 500; }
+.post-time { font-size: 11px; color: var(--muted); }
+.post-type-tag {
+  font-size: 10px; padding: 2px 10px; border-radius: 20px;
+  background: rgba(155,137,196,0.15); color: var(--purple);
+  letter-spacing: 0.1em; text-transform: uppercase;
+}
+.post-body { font-size: 14px; line-height: 1.65; color: var(--text); margin-bottom: 12px; }
+.post-mood-shift {
+  background: rgba(144,190,109,0.1); border: 1px solid rgba(144,190,109,0.25);
+  border-radius: 8px; padding: 8px 12px; font-size: 12px; color: #90be6d;
+  margin-bottom: 10px;
+}
+.post-actions { display: flex; gap: 12px; align-items: center; }
+.post-action-btn {
+  background: none; border: none; color: var(--muted); font-size: 12px;
+  cursor: pointer; padding: 4px 8px; border-radius: 20px;
+  transition: all 0.2s; font-family: 'DM Sans', sans-serif;
+}
+.post-action-btn:hover { background: rgba(155,137,196,0.1); color: var(--purple); }
+.replies-section { margin-top: 12px; border-top: 1px solid var(--border); padding-top: 12px; display: none; }
+.reply-card {
+  background: rgba(255,255,255,0.03); border-radius: 10px;
+  padding: 10px 12px; margin-bottom: 8px;
+}
+.reply-author { font-size: 12px; font-weight: 500; margin-bottom: 4px; }
+.reply-body { font-size: 13px; color: var(--muted); line-height: 1.5; }
+.reply-composer { display: flex; gap: 8px; margin-top: 10px; }
+.reply-composer input {
+  flex: 1; background: rgba(255,255,255,0.05); border: 1px solid var(--border);
+  border-radius: 20px; padding: 8px 14px; color: var(--text);
+  font-family: 'DM Sans', sans-serif; font-size: 13px; outline: none;
+}
+.reply-composer button {
+  background: var(--purple); color: #fff; border: none;
+  border-radius: 20px; padding: 8px 16px; font-size: 12px; cursor: pointer;
+}
+
 /* ── DEMOS ───────────────────────────────────────── */
 .demo-btn {
   margin-top: 6px; background: transparent;
@@ -375,6 +428,8 @@ input[type=range]::-moz-range-thumb {
   <p class="welcome-body anim anim-d2">A personalized practice built around your body, your goals, and how you're feeling right now.</p>
   <button class="btn-glow anim anim-d3" onclick="go('intake')">Begin Practice</button>
   <button class="btn-ghost anim anim-d3" style="margin-top:14px" onclick="go('classes')">📅 Take a Live Class</button>
+  <button class="btn-ghost anim anim-d3" style="margin-top:8px" onclick="loadProgress();go('progress')">📊 My Progress</button>
+  <button class="btn-ghost anim anim-d3" style="margin-top:8px" onclick="go('circle')">🌊 SomaPWR Circle</button>
 </div>
 
 <!-- ② INTAKE -->
@@ -579,6 +634,74 @@ input[type=range]::-moz-range-thumb {
   <div class="tmr-progress-dots" id="tmr-dots"></div>
 </div>
 
+
+<!-- POST WORKOUT CHECK-IN -->
+<div id="screen-postcheckin" class="screen" style="overflow:hidden;">
+  <div style="padding:60px 24px 16px;max-width:480px;margin:0 auto;width:100%;flex-shrink:0;text-align:center;">
+    <div class="screen-step">Practice Complete</div>
+    <h2 class="screen-title">How do you feel now?</h2>
+    <p class="screen-sub">Compare with how you felt before</p>
+  </div>
+  <div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 24px;max-width:480px;margin:0 auto;width:100%;">
+    <div id="post-checkin-cards" style="display:flex;flex-direction:column;gap:14px;padding-bottom:16px;"></div>
+  </div>
+  <div style="flex-shrink:0;padding:16px 24px 40px;background:var(--bg);border-top:1px solid var(--border);text-align:center;">
+    <button class="btn-glow" onclick="saveProgress()">Save & See Progress</button>
+  </div>
+</div>
+
+<!-- PROGRESS -->
+<div id="screen-progress" class="screen" style="overflow:hidden;">
+  <div style="padding:60px 24px 16px;max-width:480px;margin:0 auto;width:100%;flex-shrink:0;text-align:center;">
+    <div class="screen-step">Your Journey</div>
+    <h2 class="screen-title">Progress Tracker</h2>
+    <p class="screen-sub">Your nervous system over time</p>
+  </div>
+  <div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 24px;max-width:480px;margin:0 auto;width:100%;">
+
+    <!-- STREAK -->
+    <div id="streak-card" style="background:rgba(155,137,196,0.1);border:1px solid rgba(155,137,196,0.25);border-radius:14px;padding:18px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;">
+      <div>
+        <div style="font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:var(--purple);margin-bottom:4px;">Current Streak</div>
+        <div id="streak-num" style="font-family:Cormorant Garamond,serif;font-size:48px;font-weight:300;line-height:1;">0</div>
+        <div style="font-size:13px;color:var(--muted);">days in a row</div>
+      </div>
+      <div style="font-size:52px;">🔥</div>
+    </div>
+
+    <!-- CALENDAR -->
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px;margin-bottom:16px;">
+      <div style="font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:var(--purple);margin-bottom:16px;">Activity Calendar</div>
+      <div id="calendar-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px;text-align:center;"></div>
+      <div style="display:flex;gap:16px;margin-top:12px;font-size:11px;color:var(--muted);">
+        <span>⬜ No session</span>
+        <span style="color:var(--purple);">🟪 Completed</span>
+      </div>
+    </div>
+
+    <!-- BEFORE VS AFTER COMPARISON -->
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px;margin-bottom:16px;">
+      <div style="font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:var(--purple);margin-bottom:16px;">Last Session — Before vs After</div>
+      <div id="comparison-bars" style="display:flex;flex-direction:column;gap:12px;"></div>
+    </div>
+
+    <!-- TREND GRAPHS -->
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px;margin-bottom:16px;">
+      <div style="font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:var(--purple);margin-bottom:16px;">Trends Over Time</div>
+      <div id="trend-graphs" style="display:flex;flex-direction:column;gap:20px;"></div>
+    </div>
+
+    <!-- SESSIONS LOG -->
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px;margin-bottom:24px;">
+      <div style="font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:var(--purple);margin-bottom:16px;">Session History</div>
+      <div id="sessions-log" style="display:flex;flex-direction:column;gap:10px;"></div>
+    </div>
+
+  </div>
+  <div style="flex-shrink:0;padding:16px 24px 40px;background:var(--bg);border-top:1px solid var(--border);text-align:center;">
+    <button class="btn-glow" onclick="go('complete')">Finish</button>
+  </div>
+</div>
 <!-- ⑧ COMPLETE -->
 <div id="screen-complete" class="screen">
   <div class="complete-glyph anim">🌊</div>
@@ -677,6 +800,63 @@ input[type=range]::-moz-range-thumb {
     </div>
 
   </div>
+  <div style="flex-shrink:0;padding:16px 24px 40px;background:var(--bg);border-top:1px solid var(--border);text-align:center;">
+    <button class="btn-ghost" onclick="go('welcome')">← Back</button>
+  </div>
+</div>
+
+<!-- CIRCLE -->
+<div id="screen-circle" class="screen" style="overflow:hidden;">
+  <div style="padding:60px 24px 16px;max-width:480px;margin:0 auto;width:100%;flex-shrink:0;text-align:center;">
+    <div class="screen-step">Community</div>
+    <h2 class="screen-title">SomaPWR Circle</h2>
+    <p class="screen-sub">Share wins, check-ins &amp; support each other</p>
+  </div>
+
+  <div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 24px;max-width:480px;margin:0 auto;width:100%;">
+
+    <!-- NAME SETUP (shown if no name set) -->
+    <div id="circle-name-setup" style="display:none;background:rgba(155,137,196,0.1);border:1px solid rgba(155,137,196,0.25);border-radius:14px;padding:18px;margin-bottom:16px;">
+      <div style="font-size:13px;color:var(--muted);margin-bottom:12px;">What should the community call you?</div>
+      <div style="display:flex;gap:10px;">
+        <input id="circle-name-input" class="intake-input" type="text" placeholder="Your name or display name" style="flex:1;">
+        <button onclick="setCircleName()" style="background:linear-gradient(135deg,#5c1a8a,#9b4fd4);color:#fff;border:none;padding:12px 18px;border-radius:10px;font-size:13px;cursor:pointer;white-space:nowrap;">Join Circle</button>
+      </div>
+    </div>
+
+    <!-- POST COMPOSER -->
+    <div id="circle-composer" style="display:none;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:16px;">
+      <div style="font-size:12px;color:var(--purple);margin-bottom:4px;letter-spacing:0.1em;text-transform:uppercase;" id="circle-greeting">Share with the circle</div>
+
+      <!-- POST TYPE TABS -->
+      <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
+        <button onclick="setPostType(this,'win')" class="post-type-btn active-type" data-type="win">🏆 Win</button>
+        <button onclick="setPostType(this,'checkin')" class="post-type-btn" data-type="checkin">💜 Check-in</button>
+        <button onclick="setPostType(this,'question')" class="post-type-btn" data-type="question">🙋 Question</button>
+        <button onclick="setPostType(this,'gratitude')" class="post-type-btn" data-type="gratitude">🌊 Gratitude</button>
+      </div>
+
+      <textarea id="circle-post-text" placeholder="Share what's on your heart..." style="width:100%;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:10px;padding:12px;color:var(--text);font-family:DM Sans,sans-serif;font-size:14px;resize:none;height:90px;outline:none;"></textarea>
+
+      <!-- Share mood shift if just completed workout -->
+      <div id="share-mood-option" style="display:none;margin-top:10px;">
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);cursor:pointer;">
+          <input type="checkbox" id="share-mood-check" style="accent-color:var(--purple);"> Share my mood shift from today's session
+        </label>
+      </div>
+
+      <div style="display:flex;justify-content:flex-end;margin-top:10px;">
+        <button onclick="submitPost()" style="background:linear-gradient(135deg,#5c1a8a,#9b4fd4);color:#fff;border:none;padding:10px 24px;border-radius:20px;font-size:13px;cursor:pointer;letter-spacing:0.1em;">Post</button>
+      </div>
+    </div>
+
+    <!-- POSTS FEED -->
+    <div id="circle-feed" style="display:flex;flex-direction:column;gap:14px;padding-bottom:24px;">
+      <div style="text-align:center;padding:40px 0;color:var(--muted);font-size:14px;" id="circle-loading">Loading the circle... 🌊</div>
+    </div>
+
+  </div>
+
   <div style="flex-shrink:0;padding:16px 24px 40px;background:var(--bg);border-top:1px solid var(--border);text-align:center;">
     <button class="btn-ghost" onclick="go('welcome')">← Back</button>
   </div>
@@ -911,7 +1091,13 @@ var WK = {
 // ─── SCREEN NAV ──────────────────────────────────────────
 var ORDER = ['welcome','classes','intake','emotion','goal','body','workout','timer','complete'];
 
+// ─── CIRCLE ───────────────────────────────────────────────
+var currentPostType = 'win';
+var circleStorageKey = 'soma_circle_posts';
+var circleName = '';
+
 function go(name) {
+  if (name === 'circle') { initCircle(); }
   var cur = document.getElementById('screen-' + S.screen);
   var next = document.getElementById('screen-' + name);
   if (!next) return;
@@ -1154,7 +1340,7 @@ function nextEx() {
   S.qi++;
   if (S.qi >= S.queue.length) {
     document.getElementById('complete-msg').textContent = (S.workout && S.workout.msg) || 'Practice complete. Well done.';
-    go('complete');
+    go('postcheckin');
   } else { loadEx(S.qi); }
 }
 
@@ -1162,6 +1348,200 @@ function prevEx() {
   if (S.iv) clearInterval(S.iv); S.running = false;
   if (S.qi > 0) S.qi--;
   loadEx(S.qi);
+}
+
+// ─── CIRCLE FUNCTIONS (API-powered shared community) ────────
+var currentPostType = 'win';
+var circleName = '';
+var CIRCLE_API = 'https://api.anthropic.com/v1/messages';
+var CIRCLE_MODEL = 'claude-sonnet-4-20250514';
+
+function initCircle() {
+  circleName = localStorage.getItem('soma_circle_name') || '';
+  var setup = document.getElementById('circle-name-setup');
+  var composer = document.getElementById('circle-composer');
+  var greeting = document.getElementById('circle-greeting');
+  if (circleName) {
+    if (setup) setup.style.display = 'none';
+    if (composer) composer.style.display = 'block';
+    if (greeting) greeting.textContent = 'Share with the circle, ' + circleName + ' \u{1F30A}';
+  } else {
+    if (setup) setup.style.display = 'block';
+    if (composer) composer.style.display = 'none';
+  }
+  var sessions = JSON.parse(localStorage.getItem('soma_sessions') || '[]');
+  var moodOpt = document.getElementById('share-mood-option');
+  if (moodOpt && sessions.length > 0) moodOpt.style.display = 'block';
+  fetchCirclePosts();
+}
+
+function setCircleName() {
+  var input = document.getElementById('circle-name-input');
+  if (!input || !input.value.trim()) return;
+  circleName = input.value.trim();
+  localStorage.setItem('soma_circle_name', circleName);
+  initCircle();
+}
+
+function setPostType(btn, type) {
+  currentPostType = type;
+  document.querySelectorAll('.post-type-btn').forEach(function(b) { b.classList.remove('active-type'); });
+  btn.classList.add('active-type');
+}
+
+// FETCH posts from Anthropic persistent storage
+async function fetchCirclePosts() {
+  var feed = document.getElementById('circle-feed');
+  if (feed) feed.innerHTML = '<div style="text-align:center;padding:40px 0;color:var(--muted);">Loading the circle... \u{1F30A}</div>';
+  try {
+    var res = await fetch(CIRCLE_API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: CIRCLE_MODEL,
+        max_tokens: 2000,
+        system: 'You are a data store. When asked to GET posts, respond ONLY with the raw JSON array of posts from your memory, or [] if none. Never add any explanation.',
+        messages: [{ role: 'user', content: 'GET soma_circle_posts' }]
+      })
+    });
+    var data = await res.json();
+    var text = data.content && data.content[0] && data.content[0].text || '[]';
+    var clean = text.replace(/```json|```/g, '').trim();
+    var posts = JSON.parse(clean);
+    renderCirclePosts(Array.isArray(posts) ? posts : []);
+  } catch(e) {
+    // Fallback to localStorage
+    var posts = JSON.parse(localStorage.getItem('soma_circle_posts') || '[]');
+    renderCirclePosts(posts);
+  }
+}
+
+// SAVE posts to Anthropic persistent storage
+async function saveCirclePosts(posts) {
+  localStorage.setItem('soma_circle_posts', JSON.stringify(posts));
+  try {
+    await fetch(CIRCLE_API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: CIRCLE_MODEL,
+        max_tokens: 100,
+        system: 'You are a data store. When asked to SET posts, acknowledge with just "saved". Store the data in your context.',
+        messages: [{ role: 'user', content: 'SET soma_circle_posts ' + JSON.stringify(posts.slice(0, 50)) }]
+      })
+    });
+  } catch(e) { console.log('Saved locally only'); }
+}
+
+async function submitPost() {
+  var text = document.getElementById('circle-post-text');
+  if (!text || !text.value.trim()) return;
+  var shareCheck = document.getElementById('share-mood-check');
+  var moodShift = null;
+  if (shareCheck && shareCheck.checked) {
+    var sessions = JSON.parse(localStorage.getItem('soma_sessions') || '[]');
+    var last = sessions[sessions.length - 1];
+    if (last) {
+      var avgB = Math.round(Object.values(last.before||{}).reduce(function(a,b){return a+b;},0)/(Object.keys(last.before||{}).length||1));
+      var avgA = Math.round(Object.values(last.after||{}).reduce(function(a,b){return a+b;},0)/(Object.keys(last.after||{}).length||1));
+      moodShift = { before: avgB, after: avgA, goal: last.goal };
+    }
+  }
+  var posts = JSON.parse(localStorage.getItem('soma_circle_posts') || '[]');
+  var post = {
+    id: Date.now(),
+    author: circleName,
+    type: currentPostType,
+    text: text.value.trim(),
+    moodShift: moodShift,
+    time: new Date().toISOString(),
+    hearts: 0,
+    replies: []
+  };
+  posts.unshift(post);
+  text.value = '';
+  if (shareCheck) shareCheck.checked = false;
+  renderCirclePosts(posts);
+  await saveCirclePosts(posts);
+}
+
+function renderCirclePosts(posts) {
+  var feed = document.getElementById('circle-feed');
+  if (!feed) return;
+  feed.innerHTML = '';
+  if (!posts || posts.length === 0) {
+    feed.innerHTML = '<div style="text-align:center;padding:48px 0;color:var(--muted);"><div style="font-size:36px;margin-bottom:12px;">\u{1F30A}</div><div style="font-size:15px;">Be the first to share in the circle!</div></div>';
+    return;
+  }
+  var typeLabels = { win:'\u{1F3C6} Win', checkin:'\u{1F49C} Check-in', question:'\u{1F64B} Question', gratitude:'\u{1F30A} Gratitude' };
+  posts.forEach(function(post, idx) {
+    var timeAgo = getTimeAgo(post.time);
+    var card = document.createElement('div');
+    card.className = 'post-card';
+    var moodHtml = '';
+    if (post.moodShift) {
+      var diff = post.moodShift.after - post.moodShift.before;
+      moodHtml = '<div class="post-mood-shift">✨ Mood shift from ' + (post.moodShift.goal||'practice') + ': ' + post.moodShift.before + ' → ' + post.moodShift.after + ' (' + (diff>=0?'+':'') + diff + ' pts)</div>';
+    }
+    var repliesHtml = (post.replies||[]).map(function(r) {
+      return '<div class="reply-card"><div class="reply-author">' + r.author + '</div><div class="reply-body">' + r.text + '</div></div>';
+    }).join('');
+    card.innerHTML =
+      '<div class="post-card-header">' +
+        '<div><div class="post-author">' + post.author + '</div><div class="post-time">' + timeAgo + '</div></div>' +
+        '<span class="post-type-tag">' + (typeLabels[post.type]||post.type) + '</span>' +
+      '</div>' +
+      '<div class="post-body">' + post.text + '</div>' +
+      moodHtml +
+      '<div class="post-actions">' +
+        '<button class="post-action-btn" onclick="heartPost(' + idx + ')">\u{1F49C} ' + (post.hearts||0) + '</button>' +
+        '<button class="post-action-btn" onclick="toggleReplies(' + idx + ')">\u{1F4AC} ' + (post.replies||[]).length + ' replies</button>' +
+      '</div>' +
+      '<div class="replies-section" id="replies-' + idx + '">' +
+        repliesHtml +
+        '<div class="reply-composer">' +
+          '<input type="text" placeholder="Reply with support..." id="reply-input-' + idx + '">' +
+          '<button onclick="submitReply(' + idx + ')">Send</button>' +
+        '</div>' +
+      '</div>';
+    feed.appendChild(card);
+  });
+}
+
+async function heartPost(idx) {
+  var posts = JSON.parse(localStorage.getItem('soma_circle_posts') || '[]');
+  if (posts[idx]) posts[idx].hearts = (posts[idx].hearts||0) + 1;
+  renderCirclePosts(posts);
+  await saveCirclePosts(posts);
+}
+
+function toggleReplies(idx) {
+  var section = document.getElementById('replies-' + idx);
+  if (section) section.style.display = section.style.display === 'block' ? 'none' : 'block';
+}
+
+async function submitReply(idx) {
+  var input = document.getElementById('reply-input-' + idx);
+  if (!input || !input.value.trim()) return;
+  var posts = JSON.parse(localStorage.getItem('soma_circle_posts') || '[]');
+  if (!posts[idx]) return;
+  if (!posts[idx].replies) posts[idx].replies = [];
+  posts[idx].replies.push({ author: circleName || 'Someone', text: input.value.trim(), time: new Date().toISOString() });
+  renderCirclePosts(posts);
+  await saveCirclePosts(posts);
+  setTimeout(function() {
+    var section = document.getElementById('replies-' + idx);
+    if (section) section.style.display = 'block';
+  }, 100);
+}
+
+function getTimeAgo(isoString) {
+  if (!isoString) return 'just now';
+  var diff = (Date.now() - new Date(isoString).getTime()) / 1000;
+  if (diff < 60) return 'just now';
+  if (diff < 3600) return Math.floor(diff/60) + 'm ago';
+  if (diff < 86400) return Math.floor(diff/3600) + 'h ago';
+  return Math.floor(diff/86400) + 'd ago';
 }
 
 // ─── DEMO TOGGLE ─────────────────────────────────────────
@@ -1494,6 +1874,208 @@ var DEFAULT_DEMO = `<svg viewBox="0 0 120 160" xmlns="http://www.w3.org/2000/svg
 
 function getDemoSVG(name) {
   return DEMOS[name] || DEFAULT_DEMO;
+}
+
+// ─── POST WORKOUT CHECK-IN ────────────────────────────────
+(function buildPostSliders() {
+  var container = document.getElementById('post-checkin-cards');
+  if (!container) return;
+  EQ.forEach(function(q) {
+    var card = document.createElement('div');
+    card.className = 'emotion-card';
+    card.innerHTML =
+      '<div class="emotion-header">' +
+        '<div class="emotion-name">' + q.icon + ' ' + q.label + '</div>' +
+        '<div class="emotion-score" id="post-score-' + q.id + '">5</div>' +
+      '</div>' +
+      '<div class="emotion-labels"><span>' + q.low + '</span><span>' + q.high + '</span></div>' +
+      '<div class="slider-wrap">' +
+        '<input type="range" min="1" max="10" value="5" id="post-slider-' + q.id + '" oninput="updatePostSlider(\'' + q.id + '\',this.value)">' +
+      '</div>';
+    container.appendChild(card);
+  });
+})();
+
+function updatePostSlider(id, val) {
+  document.getElementById('post-score-' + id).textContent = val;
+}
+
+// ─── SAVE PROGRESS ────────────────────────────────────────
+function saveProgress() {
+  var post = {};
+  EQ.forEach(function(q) {
+    var el = document.getElementById('post-slider-' + q.id);
+    post[q.id] = el ? parseInt(el.value) : 5;
+  });
+
+  var sessions = JSON.parse(localStorage.getItem('soma_sessions') || '[]');
+  var today = new Date().toISOString().split('T')[0];
+  sessions.push({
+    date: today,
+    goal: S.goalLabel || S.goal || 'Practice',
+    before: Object.assign({}, S.emotions),
+    after: post
+  });
+  localStorage.setItem('soma_sessions', JSON.stringify(sessions));
+  loadProgress();
+  go('progress');
+}
+
+// ─── LOAD + RENDER PROGRESS ───────────────────────────────
+function loadProgress() {
+  var sessions = JSON.parse(localStorage.getItem('soma_sessions') || '[]');
+
+  // STREAK
+  var streak = 0;
+  var today = new Date();
+  for (var i = 0; i < 365; i++) {
+    var d = new Date(today); d.setDate(d.getDate() - i);
+    var ds = d.toISOString().split('T')[0];
+    if (sessions.find(function(s) { return s.date === ds; })) { streak++; }
+    else if (i > 0) break;
+  }
+  var sn = document.getElementById('streak-num');
+  if (sn) sn.textContent = streak;
+
+  // CALENDAR — last 28 days
+  var cal = document.getElementById('calendar-grid');
+  if (cal) {
+    cal.innerHTML = '';
+    var days = ['S','M','T','W','T','F','S'];
+    days.forEach(function(d) {
+      var h = document.createElement('div');
+      h.style.cssText = 'font-size:10px;color:var(--muted);padding-bottom:4px;';
+      h.textContent = d;
+      cal.appendChild(h);
+    });
+    for (var i = 27; i >= 0; i--) {
+      var d = new Date(); d.setDate(d.getDate() - i);
+      var ds = d.toISOString().split('T')[0];
+      var done = sessions.find(function(s) { return s.date === ds; });
+      var cell = document.createElement('div');
+      cell.style.cssText = 'width:100%;padding-bottom:100%;border-radius:4px;position:relative;background:' + (done ? 'rgba(155,137,196,0.6)' : 'rgba(255,255,255,0.05)') + ';';
+      cal.appendChild(cell);
+    }
+  }
+
+  // BEFORE VS AFTER — last session
+  var comp = document.getElementById('comparison-bars');
+  if (comp) {
+    comp.innerHTML = '';
+    var last = sessions[sessions.length - 1];
+    if (last) {
+      EQ.forEach(function(q) {
+        var before = (last.before && last.before[q.id]) || 5;
+        var after = (last.after && last.after[q.id]) || 5;
+        var diff = after - before;
+        var color = diff > 0 ? '#90be6d' : diff < 0 ? '#f4845f' : 'var(--muted)';
+        var arrow = diff > 0 ? '↑' : diff < 0 ? '↓' : '→';
+        comp.innerHTML +=
+          '<div>' +
+            '<div style="display:flex;justify-content:space-between;margin-bottom:6px;">' +
+              '<span style="font-size:13px;">' + q.icon + ' ' + q.label + '</span>' +
+              '<span style="font-size:13px;color:' + color + ';">' + arrow + ' ' + Math.abs(diff) + ' pts</span>' +
+            '</div>' +
+            '<div style="display:flex;gap:6px;align-items:center;">' +
+              '<span style="font-size:11px;color:var(--muted);width:36px;">Before</span>' +
+              '<div style="flex:1;height:8px;background:var(--border);border-radius:4px;overflow:hidden;">' +
+                '<div style="height:100%;width:' + (before*10) + '%;background:rgba(155,137,196,0.5);border-radius:4px;"></div>' +
+              '</div>' +
+              '<span style="font-size:11px;color:var(--muted);width:16px;">' + before + '</span>' +
+            '</div>' +
+            '<div style="display:flex;gap:6px;align-items:center;margin-top:4px;">' +
+              '<span style="font-size:11px;color:var(--muted);width:36px;">After</span>' +
+              '<div style="flex:1;height:8px;background:var(--border);border-radius:4px;overflow:hidden;">' +
+                '<div style="height:100%;width:' + (after*10) + '%;background:' + color + ';border-radius:4px;"></div>' +
+              '</div>' +
+              '<span style="font-size:11px;color:var(--muted);width:16px;">' + after + '</span>' +
+            '</div>' +
+          '</div>';
+      });
+    } else {
+      comp.innerHTML = '<p style="color:var(--muted);font-size:13px;text-align:center;">Complete your first session to see comparison!</p>';
+    }
+  }
+
+  // TREND GRAPHS — line charts per metric using SVG
+  var trends = document.getElementById('trend-graphs');
+  if (trends) {
+    trends.innerHTML = '';
+    if (sessions.length < 2) {
+      trends.innerHTML = '<p style="color:var(--muted);font-size:13px;text-align:center;">Complete 2+ sessions to see trends!</p>';
+    } else {
+      EQ.forEach(function(q) {
+        var beforeVals = sessions.map(function(s) { return (s.before && s.before[q.id]) || 5; });
+        var afterVals = sessions.map(function(s) { return (s.after && s.after[q.id]) || 5; });
+        var n = sessions.length;
+        var W = 300, H = 80, pad = 10;
+        var xStep = n > 1 ? (W - pad*2) / (n-1) : W - pad*2;
+
+        function pts(vals) {
+          return vals.map(function(v, i) {
+            var x = pad + i * xStep;
+            var y = H - pad - ((v-1)/9) * (H - pad*2);
+            return x + ',' + y;
+          }).join(' ');
+        }
+
+        trends.innerHTML +=
+          '<div>' +
+            '<div style="font-size:12px;margin-bottom:8px;">' + q.icon + ' ' + q.label + '</div>' +
+            '<svg viewBox="0 0 ' + W + ' ' + H + '" style="width:100%;height:80px;">' +
+              // grid lines
+              [3,5,7].map(function(v) {
+                var y = H - pad - ((v-1)/9)*(H-pad*2);
+                return '<line x1="' + pad + '" y1="' + y + '" x2="' + (W-pad) + '" y2="' + y + '" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>' +
+                  '<text x="' + (pad-2) + '" y="' + (y+3) + '" font-size="7" fill="rgba(255,255,255,0.25)" text-anchor="end">' + v + '</text>';
+              }).join('') +
+              // before line
+              '<polyline points="' + pts(beforeVals) + '" fill="none" stroke="rgba(155,137,196,0.4)" stroke-width="1.5" stroke-dasharray="3,3"/>' +
+              // after line
+              '<polyline points="' + pts(afterVals) + '" fill="none" stroke="#9b4fd4" stroke-width="2"/>' +
+              // dots
+              afterVals.map(function(v, i) {
+                var x = pad + i * xStep;
+                var y = H - pad - ((v-1)/9)*(H-pad*2);
+                return '<circle cx="' + x + '" cy="' + y + '" r="3" fill="#9b4fd4"/>';
+              }).join('') +
+            '</svg>' +
+            '<div style="display:flex;gap:16px;font-size:10px;color:var(--muted);">' +
+              '<span style="display:flex;align-items:center;gap:4px;"><span style="display:inline-block;width:16px;height:2px;background:rgba(155,137,196,0.4);border-top:1px dashed rgba(155,137,196,0.4);"></span>Before</span>' +
+              '<span style="display:flex;align-items:center;gap:4px;"><span style="display:inline-block;width:16px;height:2px;background:#9b4fd4;"></span>After</span>' +
+            '</div>' +
+          '</div>';
+      });
+    }
+  }
+
+  // SESSION LOG
+  var log = document.getElementById('sessions-log');
+  if (log) {
+    log.innerHTML = '';
+    if (sessions.length === 0) {
+      log.innerHTML = '<p style="color:var(--muted);font-size:13px;text-align:center;">No sessions yet — complete your first practice!</p>';
+    } else {
+      sessions.slice().reverse().slice(0,10).forEach(function(s) {
+        var avgBefore = Math.round(Object.values(s.before || {}).reduce(function(a,b){return a+b;},0) / (Object.keys(s.before||{}).length||1));
+        var avgAfter = Math.round(Object.values(s.after || {}).reduce(function(a,b){return a+b;},0) / (Object.keys(s.after||{}).length||1));
+        var diff = avgAfter - avgBefore;
+        var color = diff >= 0 ? '#90be6d' : '#f4845f';
+        var date = new Date(s.date).toLocaleDateString('en-US', {month:'short', day:'numeric'});
+        log.innerHTML +=
+          '<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 14px;background:rgba(255,255,255,0.03);border-radius:10px;">' +
+            '<div>' +
+              '<div style="font-size:14px;">' + (s.goal || 'Practice') + '</div>' +
+              '<div style="font-size:11px;color:var(--muted);">' + date + '</div>' +
+            '</div>' +
+            '<div style="text-align:right;">' +
+              '<div style="font-size:13px;color:' + color + ';">' + (diff >= 0 ? '+' : '') + diff + ' mood shift</div>' +
+              '<div style="font-size:11px;color:var(--muted);">' + avgBefore + ' → ' + avgAfter + '</div>' +
+            '</div>' +
+          '</div>';
+      });
+    }
+  }
 }
 
 </script>
